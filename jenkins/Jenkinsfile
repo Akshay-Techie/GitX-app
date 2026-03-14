@@ -1,0 +1,152 @@
+// ════════════════════════════════════════════════
+// GitX — Jenkinsfile
+// CI Pipeline: Build → Scan → Push to AWS ECR
+// Author: Akshay-Techie
+// ════════════════════════════════════════════════
+
+pipeline {
+
+    // Run on any available Jenkins agent
+    agent any
+
+    // ── Environment Variables ──────────────────
+    environment {
+        // Your AWS Account ID
+        AWS_ACCOUNT_ID  = "YOUR_AWS_ACCOUNT_ID"
+
+        // AWS Region where ECR is created
+        AWS_REGION      = "us-east-1"
+
+        // ECR Repository name
+        ECR_REPO        = "gitx-app"
+
+        // Full ECR image URL
+        ECR_URL         = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+        // Full image name with tag
+        IMAGE_NAME      = "${ECR_URL}/${ECR_REPO}"
+
+        // Tag using Jenkins build number
+        IMAGE_TAG       = "build-${BUILD_NUMBER}"
+
+        // AWS credentials stored in Jenkins
+        AWS_CREDS       = "aws-credentials"
+    }
+
+    stages {
+
+        // ── Stage 1: Checkout ──────────────────
+        stage('Checkout') {
+            steps {
+                echo '📥 Checking out source code from GitHub...'
+                checkout scm
+            }
+        }
+
+        // ── Stage 2: Build Docker Image ────────
+        stage('Build Docker Image') {
+            steps {
+                echo "🐳 Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh """
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                """
+            }
+        }
+
+        // ── Stage 3: Security Scan (Trivy) ─────
+        stage('Security Scan') {
+            steps {
+                echo '🔒 Running Trivy security scan...'
+                sh """
+                    # Install Trivy if not present
+                    which trivy || (
+                        wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+                    )
+
+                    # Scan for HIGH and CRITICAL vulnerabilities
+                    trivy image --exit-code 0 \
+                                --severity HIGH,CRITICAL \
+                                --no-progress \
+                                ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        // ── Stage 4: Login to AWS ECR ──────────
+        stage('Login to ECR') {
+            steps {
+                echo '🔐 Logging in to AWS ECR...'
+                withCredentials([usernamePassword(
+                    credentialsId: "${AWS_CREDS}",
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    sh """
+                        # Configure AWS CLI
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region ${AWS_REGION}
+
+                        # Login to ECR
+                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS \
+                                     --password-stdin ${ECR_URL}
+                    """
+                }
+            }
+        }
+
+        // ── Stage 5: Create ECR Repo if needed ─
+        stage('Create ECR Repository') {
+            steps {
+                echo '📦 Creating ECR repository if not exists...'
+                sh """
+                    aws ecr describe-repositories \
+                        --repository-names ${ECR_REPO} \
+                        --region ${AWS_REGION} || \
+                    aws ecr create-repository \
+                        --repository-name ${ECR_REPO} \
+                        --region ${AWS_REGION}
+                """
+            }
+        }
+
+        // ── Stage 6: Push to ECR ───────────────
+        stage('Push to ECR') {
+            steps {
+                echo '⬆️ Pushing image to AWS ECR...'
+                sh """
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${IMAGE_NAME}:latest
+                """
+            }
+        }
+
+        // ── Stage 7: Cleanup ───────────────────
+        stage('Cleanup') {
+            steps {
+                echo '🧹 Cleaning up local Docker images...'
+                sh """
+                    docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                    docker rmi ${IMAGE_NAME}:latest || true
+                """
+            }
+        }
+    }
+
+    // ── Post Actions ───────────────────────────
+    post {
+        success {
+            echo '✅ Pipeline completed successfully!'
+            echo "🐳 Image pushed to ECR: ${IMAGE_NAME}:${IMAGE_TAG}"
+        }
+        failure {
+            echo '❌ Pipeline failed! Check logs above.'
+        }
+        always {
+            echo '🔄 Pipeline finished — cleaning workspace'
+            cleanWs()
+        }
+    }
+}
