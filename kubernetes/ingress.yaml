@@ -1,0 +1,26 @@
+# ════════════════════════════════════════════════
+# GitX — Kubernetes Ingress
+# Routes external traffic to GitX service
+# Author: Akshay-Techie
+# ════════════════════════════════════════════════
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitx-app-ingress
+  namespace: default
+  annotations:
+    # Use nginx ingress controller
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: gitx.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitx-app-service
+                port:
+                  number: 80

@@ -84,8 +84,7 @@ pipeline {
                             --no-progress \
                             \$IMAGE:${IMAGE_TAG}
 
-                        echo "✅ Security scan complete"
-                    """
+                        echo "✅ Security scan compy
                 }
             }
         }
