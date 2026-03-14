@@ -24,6 +24,10 @@ spec:
       labels:
         app: gitx-app
     spec:
+    # Use ECR secret to pull image
+      imagePullSecrets:
+        - name: ecr-secret
+        
       containers:
         - name: gitx-app
           # Image from AWS ECR
