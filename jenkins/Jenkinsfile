@@ -77,15 +77,7 @@ pipeline {
                         ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
                         IMAGE=\$ECR_URL/${ECR_REPO}
 
-                        # Install Trivy if not already installed
-                        which trivy || (
-                            wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-                            | sh -s -- -b /usr/local/bin
-                        )
-
                         # Scan image for HIGH and CRITICAL vulnerabilities
-                        # exit-code 0 = warn but do not fail the build
-                        # exit-code 1 = fail build if vulnerability found
                         trivy image \
                             --exit-code 0 \
                             --severity HIGH,CRITICAL \
