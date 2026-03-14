@@ -2,6 +2,8 @@
 // GitX — Jenkinsfile
 // CI Pipeline: Build → Scan → Push to AWS ECR
 // Author: Akshay-Techie
+// All values fetched from Jenkins Credentials
+// Zero hardcoded secrets or IDs
 // ════════════════════════════════════════════════
 
 pipeline {
@@ -10,27 +12,14 @@ pipeline {
     agent any
 
     // ── Environment Variables ──────────────────
+    // Only non-sensitive values here
     environment {
-        // Your AWS Account ID
-        AWS_ACCOUNT_ID  = "YOUR_AWS_ACCOUNT_ID"
-
-        // AWS Region where ECR is created
-        AWS_REGION      = "us-east-1"
-
         // ECR Repository name
-        ECR_REPO        = "gitx-app"
+        ECR_REPO  = "gitx-app"
 
-        // Full ECR image URL
-        ECR_URL         = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-
-        // Full image name with tag
-        IMAGE_NAME      = "${ECR_URL}/${ECR_REPO}"
-
-        // Tag using Jenkins build number
-        IMAGE_TAG       = "build-${BUILD_NUMBER}"
-
-        // AWS credentials stored in Jenkins
-        AWS_CREDS       = "aws-credentials"
+        // Image tag uses Jenkins build number
+        // e.g. build-1, build-2, build-3
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
     }
 
     stages {
@@ -39,6 +28,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '📥 Checking out source code from GitHub...'
+                // Jenkins pulls code from GitHub
+                // repo configured in job settings
                 checkout scm
             }
         }
@@ -46,11 +37,29 @@ pipeline {
         // ── Stage 2: Build Docker Image ────────
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                sh """
-                    docker build -t \$IMAGE:${IMAGE_TAG} ./app
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                """
+                echo '🐳 Building Docker image...'
+                // Fetch AWS Account ID and Region
+                // from Jenkins credentials store
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        # Build full ECR image URL dynamically
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+
+                        # Build Docker image from app/ folder
+                        docker build -t \$IMAGE:${IMAGE_TAG} ./app
+
+                        # Also tag as latest
+                        docker tag \$IMAGE:${IMAGE_TAG} \$IMAGE:latest
+
+                        echo "✅ Built: \$IMAGE:${IMAGE_TAG}"
+                    """
+                }
             }
         }
 
@@ -58,18 +67,34 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo '🔒 Running Trivy security scan...'
-                sh """
-                    # Install Trivy if not present
-                    which trivy || (
-                        wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-                    )
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
 
-                    # Scan for HIGH and CRITICAL vulnerabilities
-                    trivy image --exit-code 0 \
-                                --severity HIGH,CRITICAL \
-                                --no-progress \
-                                ${IMAGE_NAME}:${IMAGE_TAG}
-                """
+                        # Install Trivy if not already installed
+                        which trivy || (
+                            wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+                            | sh -s -- -b /usr/local/bin
+                        )
+
+                        # Scan image for HIGH and CRITICAL vulnerabilities
+                        # exit-code 0 = warn but do not fail the build
+                        # exit-code 1 = fail build if vulnerability found
+                        trivy image \
+                            --exit-code 0 \
+                            --severity HIGH,CRITICAL \
+                            --no-progress \
+                            \$IMAGE:${IMAGE_TAG}
+
+                        echo "✅ Security scan complete"
+                    """
+                }
             }
         }
 
@@ -77,21 +102,33 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 echo '🔐 Logging in to AWS ECR...'
-                withCredentials([usernamePassword(
-                    credentialsId: "${AWS_CREDS}",
-                    usernameVariable: 'AWS_ACCESS_KEY_ID',
-                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                )]) {
+                // Fetch all AWS credentials
+                // from Jenkins credentials store
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION'),
+                    string(credentialsId: 'aws-access-key-id',
+                           variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key',
+                           variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     sh """
-                        # Configure AWS CLI
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                        aws configure set default.region ${AWS_REGION}
+                        # Configure AWS CLI with credentials
+                        aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region \$AWS_REGION
 
-                        # Login to ECR
-                        aws ecr get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS \
-                                     --password-stdin ${ECR_URL}
+                        # Login Docker to ECR using AWS CLI token
+                        aws ecr get-login-password \
+                            --region \$AWS_REGION | \
+                        docker login \
+                            --username AWS \
+                            --password-stdin \
+                            \$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+
+                        echo "✅ Logged in to ECR successfully"
                     """
                 }
             }
@@ -100,15 +137,34 @@ pipeline {
         // ── Stage 5: Create ECR Repo if needed ─
         stage('Create ECR Repository') {
             steps {
-                echo '📦 Creating ECR repository if not exists...'
-                sh """
-                    aws ecr describe-repositories \
-                        --repository-names ${ECR_REPO} \
-                        --region ${AWS_REGION} || \
-                    aws ecr create-repository \
-                        --repository-name ${ECR_REPO} \
-                        --region ${AWS_REGION}
-                """
+                echo '📦 Ensuring ECR repository exists...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION'),
+                    string(credentialsId: 'aws-access-key-id',
+                           variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key',
+                           variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region \$AWS_REGION
+
+                        # Create ECR repo only if it does not exist
+                        aws ecr describe-repositories \
+                            --repository-names ${ECR_REPO} \
+                            --region \$AWS_REGION \
+                        || \
+                        aws ecr create-repository \
+                            --repository-name ${ECR_REPO} \
+                            --region \$AWS_REGION
+
+                        echo "✅ ECR repository ready: ${ECR_REPO}"
+                    """
+                }
             }
         }
 
@@ -116,10 +172,26 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 echo '⬆️ Pushing image to AWS ECR...'
-                sh """
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
-                """
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+
+                        # Push build tag
+                        docker push \$IMAGE:${IMAGE_TAG}
+
+                        # Push latest tag
+                        docker push \$IMAGE:latest
+
+                        echo "✅ Pushed: \$IMAGE:${IMAGE_TAG}"
+                        echo "✅ Pushed: \$IMAGE:latest"
+                    """
+                }
             }
         }
 
@@ -127,10 +199,23 @@ pipeline {
         stage('Cleanup') {
             steps {
                 echo '🧹 Cleaning up local Docker images...'
-                sh """
-                    docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
-                    docker rmi ${IMAGE_NAME}:latest || true
-                """
+                withCredentials([
+                    string(credentialsId: 'aws-account-id',
+                           variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region',
+                           variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+
+                        # Remove local images to free disk space
+                        docker rmi \$IMAGE:${IMAGE_TAG} || true
+                        docker rmi \$IMAGE:latest || true
+
+                        echo "✅ Local images cleaned up"
+                    """
+                }
             }
         }
     }
@@ -139,10 +224,10 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline completed successfully!'
-            echo "🐳 Image pushed to ECR: ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "🐳 Image pushed to ECR with tag: build-${BUILD_NUMBER}"
         }
         failure {
-            echo '❌ Pipeline failed! Check logs above.'
+            echo '❌ Pipeline failed! Check the logs above.'
         }
         always {
             echo '🔄 Pipeline finished — cleaning workspace'
