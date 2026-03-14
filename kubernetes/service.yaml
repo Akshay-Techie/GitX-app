@@ -1,0 +1,28 @@
+# ════════════════════════════════════════════════
+# GitX — Kubernetes Service
+# Exposes GitX app to outside world
+# Author: Akshay-Techie
+# ════════════════════════════════════════════════
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Name of the service
+  name: gitx-app-service
+  namespace: default
+  labels:
+    app: gitx-app
+spec:
+  selector:
+    # Must match deployment labels
+    app: gitx-app
+  ports:
+    - name: http
+      # Port exposed outside
+      port: 80
+      # Port inside container
+      targetPort: 3000
+      # NodePort for external access on Minikube
+      nodePort: 30000
+  # NodePort = accessible from outside cluster
+  type: NodePort

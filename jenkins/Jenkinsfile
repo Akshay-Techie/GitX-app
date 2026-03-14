@@ -1,0 +1,181 @@
+// ════════════════════════════════════════════════
+// GitX — Jenkinsfile
+// CI Pipeline: Build → Scan → Push to AWS ECR
+// Author: Akshay-Techie
+// ArgoCD monitors ECR latest tag and auto-deploys
+// No GitOps stage needed — no infinite loop possible
+// All sensitive values fetched from Jenkins Credentials
+// ════════════════════════════════════════════════
+
+pipeline {
+
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        // ECR repository name
+        ECR_REPO  = "gitx-app"
+
+        // Unique tag per build for versioning and rollback
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
+    }
+
+    stages {
+
+        // STAGE 1 — CHECKOUT
+        // Pulls latest code from GitHub
+        stage('Checkout') {
+            steps {
+                echo '📥 Checking out source code from GitHub...'
+                checkout scm
+            }
+        }
+
+        // STAGE 2 — BUILD DOCKER IMAGE
+        // Builds GitX app from app/ folder
+        // Tags with build-N and latest
+        stage('Build Docker Image') {
+            steps {
+                echo '🐳 Building Docker image...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+                        docker build -t \$IMAGE:${IMAGE_TAG} ./app
+                        docker tag \$IMAGE:${IMAGE_TAG} \$IMAGE:latest
+                        echo "Built: \$IMAGE:${IMAGE_TAG}"
+                    """
+                }
+            }
+        }
+
+        // STAGE 3 — SECURITY SCAN
+        // Trivy scans for HIGH and CRITICAL vulnerabilities
+        // exit-code 0 warns but does not fail the build
+        stage('Security Scan') {
+            steps {
+                echo '🔒 Running Trivy security scan...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+                        trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress \$IMAGE:${IMAGE_TAG}
+                        echo "Security scan complete"
+                    """
+                }
+            }
+        }
+
+        // STAGE 4 — LOGIN TO ECR
+        // Gets temporary AWS ECR login token
+        // Token valid for 12 hours
+        stage('Login to ECR') {
+            steps {
+                echo '🔐 Logging in to AWS ECR...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region \$AWS_REGION
+                        aws ecr get-login-password --region \$AWS_REGION | docker login --username AWS --password-stdin \$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        echo "Logged in to ECR"
+                    """
+                }
+            }
+        }
+
+        // STAGE 5 — CREATE ECR REPOSITORY
+        // Creates repo if not exists — safe to run every time
+        stage('Create ECR Repository') {
+            steps {
+                echo '📦 Ensuring ECR repository exists...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
+                    string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    sh """
+                        aws configure set aws_access_key_id \$AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key \$AWS_SECRET_ACCESS_KEY
+                        aws configure set default.region \$AWS_REGION
+                        aws ecr describe-repositories --repository-names ${ECR_REPO} --region \$AWS_REGION || aws ecr create-repository --repository-name ${ECR_REPO} --region \$AWS_REGION
+                        echo "ECR repository ready"
+                    """
+                }
+            }
+        }
+
+        // STAGE 6 — PUSH TO ECR
+        // Pushes build-N tag for versioning and rollback
+        // Pushes latest tag — ArgoCD and Kubernetes use this
+        // No deployment.yaml update needed — no loop possible
+        stage('Push to ECR') {
+            steps {
+                echo '⬆️ Pushing image to AWS ECR...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+                        docker push \$IMAGE:${IMAGE_TAG}
+                        docker push \$IMAGE:latest
+                        echo "Pushed: \$IMAGE:${IMAGE_TAG}"
+                        echo "Pushed: \$IMAGE:latest"
+                    """
+                }
+            }
+        }
+
+        // STAGE 7 — CLEANUP
+        // Removes local images to free Jenkins disk space
+        stage('Cleanup') {
+            steps {
+                echo '🧹 Cleaning up local Docker images...'
+                withCredentials([
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                        ECR_URL=\$AWS_ACCOUNT_ID.dkr.ecr.\$AWS_REGION.amazonaws.com
+                        IMAGE=\$ECR_URL/${ECR_REPO}
+                        docker rmi \$IMAGE:${IMAGE_TAG} || true
+                        docker rmi \$IMAGE:latest || true
+                        echo "Cleanup done"
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline completed successfully!'
+            echo "🐳 Image pushed: build-${BUILD_NUMBER}"
+            echo "🔄 ArgoCD will auto-deploy latest image to Kubernetes!"
+        }
+        failure {
+            echo '❌ Pipeline failed! Check logs above.'
+        }
+        always {
+            echo '🔄 Cleaning Jenkins workspace...'
+            cleanWs()
+        }
+    }
+}

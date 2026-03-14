@@ -1,0 +1,42 @@
+# ════════════════════════════════════════════════
+# GitX — ArgoCD Application
+# Watches GitHub repo and auto-deploys to K8s
+# Author: Akshay-Techie
+# ════════════════════════════════════════════════
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Name of ArgoCD application
+  name: gitx-app
+  # Must be in argocd namespace
+  namespace: argocd
+spec:
+  # Which cluster to deploy to
+  # in-cluster means same cluster ArgoCD is in
+  destination:
+    namespace: default
+    server: https://kubernetes.default.svc
+
+  # Which ArgoCD project to use
+  project: default
+
+  # Source — your GitHub repository
+  source:
+    # Your GitHub repo URL
+    repoURL: https://github.com/Akshay-Techie/GitX-app.git
+    # Branch to watch
+    targetRevision: main
+    # Folder containing K8s manifests
+    path: kubernetes
+
+  # Sync policy — auto deploy on changes
+  syncPolicy:
+    automated:
+      # Auto delete removed resources
+      prune: true
+      # Auto heal if someone manually changes K8s
+      selfHeal: true
+    syncOptions:
+      # Create namespace if not exists
+      - CreateNamespace=true

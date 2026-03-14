@@ -1,0 +1,2934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitX — by the Creator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   GITX — GLOBAL DESIGN SYSTEM
+════════════════════════════════════════ */
+:root {
+  --bg:        #060810;
+  --bg2:       #0a0d14;
+  --surface:   #0e1219;
+  --surface2:  #141820;
+  --surface3:  #1a2030;
+  --border:    #1e2535;
+  --border2:   #28304a;
+  --border3:   #363f5a;
+
+  --text:      #e8eef8;
+  --text2:     #8892a8;
+  --text3:     #454f6a;
+  --text4:     #2a3148;
+
+  --cyan:      #00e5ff;
+  --cyan-dim:  rgba(0,229,255,0.12);
+  --violet:    #8b5cf6;
+  --violet-dim:rgba(139,92,246,0.12);
+  --amber:     #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --green:     #10b981;
+  --green-dim: rgba(16,185,129,0.12);
+  --red:       #ef4444;
+  --red-dim:   rgba(239,68,68,0.12);
+  --orange:    #f97316;
+
+  --p1:        #00e5ff;   /* Repository */
+  --p2:        #8b5cf6;   /* Code       */
+  --p3:        #f59e0b;   /* Pipeline   */
+
+  --radius:    10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; }
+button { font-family: inherit; }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border3); }
+
+/* ════════════════
+   SPLASH SCREEN
+════════════════ */
+#splash {
+  position:fixed; inset:0; z-index:2000;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:var(--bg);
+  transition: opacity .9s cubic-bezier(.4,0,.2,1), transform .9s cubic-bezier(.4,0,.2,1);
+}
+#splash.exit { opacity:0; transform:scale(1.06); pointer-events:none; }
+
+.splash-particles {
+  position:absolute; inset:0; overflow:hidden; pointer-events:none;
+}
+.splash-particles::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0,229,255,.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139,92,246,.07) 0%, transparent 50%),
+    radial-gradient(circle at 50% 10%, rgba(245,158,11,.05) 0%, transparent 40%);
+}
+.grid-bg {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,229,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.025) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+.splash-inner { position:relative; z-index:1; text-align:center; }
+.splash-logo-wrap {
+  display:inline-flex; align-items:center; gap:18px; margin-bottom:28px;
+}
+.splash-hexagon {
+  width:72px; height:72px; position:relative;
+  animation: hexSpin 8s linear infinite;
+}
+@keyframes hexSpin {
+  0% { filter: drop-shadow(0 0 20px rgba(0,229,255,.5)); }
+  33% { filter: drop-shadow(0 0 20px rgba(139,92,246,.5)); }
+  66% { filter: drop-shadow(0 0 20px rgba(245,158,11,.4)); }
+  100% { filter: drop-shadow(0 0 20px rgba(0,229,255,.5)); }
+}
+.splash-hexagon svg { width:100%; height:100%; }
+
+.splash-name {
+  font-family:'Syne',sans-serif; font-size:64px; font-weight:800;
+  letter-spacing:-3px; line-height:1;
+  background: linear-gradient(135deg, var(--cyan) 0%, #a78bfa 50%, var(--amber) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.splash-version {
+  font-size:11px; color:var(--text3); letter-spacing:3px;
+  text-transform:uppercase; margin-top:4px;
+}
+.splash-tagline {
+  font-family:'Syne',sans-serif; font-size:17px; font-weight:400;
+  color:var(--text2); margin-bottom:40px; letter-spacing:.3px;
+}
+.splash-tagline em { color:var(--cyan); font-style:normal; }
+
+.splash-shortcut-ring {
+  display:inline-flex; align-items:center; gap:10px;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:50px; padding:12px 24px;
+  animation: ringPulse 2.5s ease-in-out infinite;
+}
+@keyframes ringPulse {
+  0%,100%{ border-color:var(--border2); box-shadow:none; }
+  50%{ border-color:rgba(0,229,255,.4); box-shadow:0 0 20px rgba(0,229,255,.1); }
+}
+.key-badge {
+  background:var(--surface3); border:1px solid var(--border2);
+  border-bottom:3px solid var(--border3);
+  border-radius:5px; padding:4px 10px; font-size:12px; font-weight:500;
+}
+.shortcut-plus { color:var(--text3); font-size:12px; }
+.shortcut-text { font-size:12px; color:var(--text2); }
+
+.splash-author {
+  margin-top:32px; font-size:11px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text3);
+}
+.splash-author strong { color:var(--cyan); }
+
+/* ════════════════
+   MAIN APP
+════════════════ */
+#app {
+  position:fixed; inset:0; z-index:100;
+  opacity:0; pointer-events:none;
+  transition: opacity .5s ease;
+}
+#app.on { opacity:1; pointer-events:all; }
+
+/* ─ TOP BAR ─ */
+.topbar {
+  position:fixed; top:0; left:0; right:0; z-index:500; height:46px;
+  background:rgba(6,8,16,.9); backdrop-filter:blur(24px) saturate(200%);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 14px; gap:10px;
+  user-select:none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.topbar:hover {
+  background:rgba(6,8,16,.95);
+  border-bottom-color: rgba(0, 229, 255, 0.2);
+}
+.win-dots { display:flex; gap:6px; }
+.wd {
+  width:16px; height:16px; border-radius:5px;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:700; background:transparent; line-height:1;
+}
+.wd:hover { transform:scale(1.15); }
+.wd-r { border:1.5px solid #ff5f57; color:#ff5f57; }
+.wd-r:hover { background:rgba(255,95,87,.12); }
+.wd-y { border:1.5px solid #ffbd2e; color:#ffbd2e; }
+.wd-y:hover { background:rgba(255,189,46,.12); }
+.wd-g { border:1.5px solid #28c840; color:#28c840; }
+.wd-g:hover { background:rgba(40,200,64,.12); }
+
+.topbar-brand {
+  display:flex; align-items:center; gap:8px; margin-left:6px;
+}
+.brand-hex { font-size:18px; line-height:1; }
+.brand-name {
+  font-family:'Syne',sans-serif; font-size:16px; font-weight:800;
+  background:linear-gradient(90deg, var(--cyan), #a78bfa);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:-0.5px;
+}
+
+.topbar-spacer { flex:1; }
+
+/* Page Nav Pills */
+.page-nav {
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
+  display:flex;
+  gap:2px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:3px;
+}
+.pnav {
+  display:flex; align-items:center; gap:7px;
+  padding:5px 16px; border-radius:9px;
+  font-size:11px; font-weight:500; letter-spacing:.3px;
+  cursor:pointer; border:none; background:transparent;
+  color:var(--text3); transition:all .2s;
+}
+.pnav:hover { color:var(--text2); background:var(--surface2); }
+.pnav.active { background:var(--surface2); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.4); }
+.pnav[data-p="0"].active { color:var(--p1); }
+.pnav[data-p="1"].active { color:var(--p2); }
+.pnav[data-p="2"].active { color:var(--p3); }
+.pnav-icon { font-size:13px; }
+
+/* Layout toggle */
+.layout-toggle {
+  display:flex; gap:2px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:3px;
+}
+.ltog {
+  padding:4px 9px; border-radius:5px; font-size:11px;
+  cursor:pointer; border:none; background:transparent;
+  color:var(--text3); transition:all .15s;
+}
+.ltog:hover { color:var(--text2); }
+.ltog.active { background:var(--surface3); color:var(--text); }
+
+.exit-btn {
+  font-size:10px; color:var(--text3); letter-spacing:1px;
+  cursor:pointer; padding:5px 10px; border-radius:6px;
+  border:1px solid var(--border); background:transparent;
+  transition:all .2s;
+}
+.exit-btn:hover { color:var(--red); border-color:var(--red); }
+
+/* ─ PAGE TRACK ─ */
+#page-wrap { position:fixed; top:46px; inset-inline:0; bottom:0; overflow:hidden; }
+
+#track {
+  display:flex; width:300%; height:100%;
+  transform:translateX(0);
+  transition: transform .65s cubic-bezier(.77,0,.18,1);
+  will-change:transform;
+}
+.page { width:33.333%; height:100%; flex-shrink:0; overflow:hidden; position:relative; }
+
+/* page accent line */
+.page::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  pointer-events:none; z-index:10;
+}
+#p0::after { background:linear-gradient(90deg, transparent 10%, var(--p1), transparent 90%); }
+#p1::after { background:linear-gradient(90deg, transparent 10%, var(--p2), transparent 90%); }
+#p2::after { background:linear-gradient(90deg, transparent 10%, var(--p3), transparent 90%); }
+
+/* split layout */
+#page-wrap.split2 #track { width:100%; transition:none; transform:none !important; }
+#page-wrap.split2 .page { width:50%; display:none; }
+#page-wrap.split2 .page.sv { display:block; }
+#page-wrap.split3 #track { width:100%; transition:none; transform:none !important; }
+#page-wrap.split3 .page { width:33.333%; }
+
+/* ─ PAGE DOTS ─ */
+.pg-dots {
+  position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+  display:flex; gap:5px; z-index:400;
+  background:rgba(6,8,16,.7); backdrop-filter:blur(12px);
+  border:1px solid var(--border); border-radius:20px; padding:5px 8px;
+}
+
+/* ─ NAVIGATION ARROWS ─ */
+.nav-arrow {
+  position:fixed; top:50%; transform:translateY(-50%);
+  font-size:24px; color:var(--text2);
+  background:rgba(0,0,0,0.3); width:40px; height:40px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%; cursor:pointer; transition:background .2s, color .2s, transform .2s;
+  z-index:600;
+}
+.nav-arrow.left { left:10px; }
+.nav-arrow.right { right:10px; }
+.nav-arrow:hover { background:rgba(0,0,0,0.5); color:var(--text); transform:scale(1.1); }
+.nav-arrow:active { transform:scale(0.95); }
+.pgd {
+  width:6px; height:6px; border-radius:3px;
+  background:var(--border2); cursor:pointer; transition:all .3s;
+}
+.pgd.on { width:22px; }
+.pgd[data-p="0"].on { background:var(--p1); }
+.pgd[data-p="1"].on { background:var(--p2); }
+.pgd[data-p="2"].on { background:var(--p3); }
+
+/* ─ WATERMARK ─ */
+.wm {
+  position:fixed; bottom:10px; left:14px; z-index:300;
+  font-size:10px; color:var(--text4); letter-spacing:1px; pointer-events:none;
+}
+.wm span { color:var(--cyan); }
+
+/* ─ TOAST ─ */
+.toast {
+  position:fixed; bottom:48px; right:16px; z-index:600;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; padding:10px 14px; font-size:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,.5);
+  transform:translateX(calc(100% + 20px));
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  max-width:280px; min-width:220px;
+}
+.toast.show { transform:translateX(0); }
+.toast-title { font-weight:600; margin-bottom:2px; color:var(--text); }
+.toast-body { color:var(--text2); font-size:11px; }
+
+
+/* ════════════════════════════════════════
+   PAGE 1 — GitX Repository
+════════════════════════════════════════ */
+#p0 { background:var(--bg); display:flex; flex-direction:column; }
+
+.git-layout { display:flex; flex:1; overflow:hidden; }
+
+/* sidebar */
+.g-side {
+  width:230px; flex-shrink:0; border-right:1px solid var(--border);
+  background:var(--surface); overflow-y:auto; padding:12px 0;
+}
+.gsec { margin-bottom:20px; }
+.gsec-label {
+  font-size:9px; letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--text3); padding:0 14px 6px;
+}
+.gsi {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 14px; font-size:12px; color:var(--text2);
+  cursor:pointer; transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-left:2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+.gsi::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+  transform: translateX(-110%);
+  transition: transform 0.6s ease;
+}
+.gsi:hover {
+  background:var(--surface2);
+  color:var(--text);
+  padding-left: 16px;
+  filter: brightness(1.1);
+}
+.gsi:hover::before {
+  transform: translateX(110%);
+}
+.gsi.on {
+  background:var(--cyan-dim);
+  color:var(--cyan);
+  border-left-color:var(--cyan);
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.2);
+}
+.gsi .ico { width:16px; text-align:center; font-size:12px; flex-shrink:0; }
+.gsi-badge {
+  margin-left:auto; background:var(--violet); color:white;
+  font-size:9px; padding:1px 6px; border-radius:8px;
+}
+
+/* main repo area */
+.g-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+.g-header {
+  padding:18px 22px 14px; border-bottom:1px solid var(--border);
+  background:var(--surface); flex-shrink:0;
+}
+.repo-path {
+  font-family:'Syne',sans-serif; font-size:20px; font-weight:700;
+  display:flex; align-items:center; gap:6px; margin-bottom:10px;
+}
+.rp-owner { color:var(--text2); }
+.rp-sep { color:var(--text3); }
+.rp-name { color:var(--cyan); }
+
+.repo-badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.rbadge {
+  display:flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px; border:1px solid;
+  font-size:11px; cursor:pointer; transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space:nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.rbadge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.rb-pub { border-color:var(--green); color:var(--green); }
+.rb-star { border-color:var(--amber); color:var(--amber); }
+.rb-star:hover {
+  background:var(--amber-dim);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+.rb-fork { border-color:var(--border3); color:var(--text2); }
+.rb-fork:hover {
+  background:var(--surface3);
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+.rb-watch { border-color:var(--border3); color:var(--text2); }
+.rb-watch:hover {
+  background:var(--surface3);
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+
+.g-tabs {
+  display:flex; background:var(--surface); border-bottom:1px solid var(--border);
+  padding:0 22px; flex-shrink:0; overflow-x:auto;
+}
+.g-tabs::-webkit-scrollbar { height:0; }
+.gtab {
+  padding:11px 14px; font-size:12px; color:var(--text2);
+  cursor:pointer; border-bottom:2px solid transparent;
+  transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space:nowrap;
+  display:flex; align-items:center; gap:6px;
+  position: relative;
+  overflow: hidden;
+}
+.gtab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--cyan);
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gtab:hover {
+  color:var(--text);
+  transform: translateY(-1px);
+}
+.gtab:hover::before {
+  width: 100%;
+}
+.gtab.on {
+  color:var(--text);
+  border-bottom-color:var(--cyan);
+  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.15);
+}
+.gtab-n {
+  background:var(--surface3); border:1px solid var(--border2);
+  font-size:10px; padding:0 6px; border-radius:8px;
+}
+
+.g-body { flex:1; overflow-y:auto; padding:18px 22px; background:var(--bg); }
+
+.g-meta {
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:10px 14px; background:var(--surface);
+  border:1px solid var(--border); border-radius:var(--radius);
+  margin-bottom:14px;
+}
+.branch-pill {
+  display:flex; align-items:center; gap:6px;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer;
+}
+.branch-pill:hover { border-color:var(--cyan); }
+.ci { font-size:11px; color:var(--text2); }
+.ci strong { color:var(--text); }
+.g-meta-actions { margin-left:auto; display:flex; gap:6px; }
+.g-btn {
+  padding:5px 12px; border-radius:6px; font-size:11px;
+  font-family:inherit; cursor:pointer; border:1px solid var(--border2);
+  background:var(--surface2); color:var(--text2); transition:all .2s;
+}
+.g-btn:hover { color:var(--text); border-color:var(--border3); }
+.g-btn.primary {
+  background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(0,229,255,.05));
+  border-color:rgba(0,229,255,.3); color:var(--cyan);
+}
+.g-btn.primary:hover { background:rgba(0,229,255,.2); }
+
+.file-list { display:flex; flex-direction:column; gap:1px; margin-bottom:14px; }
+.frow {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 10px; border-radius:6px;
+  cursor:pointer; transition:all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); font-size:12px;
+  position: relative;
+  overflow: hidden;
+}
+.frow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.frow:hover {
+  background:var(--surface2);
+  padding-left: 14px;
+  transform: translateX(2px);
+}
+.frow:hover::before {
+  transform: translateX(100%);
+}
+.frow:active {
+  transform: scale(0.98);
+}
+.frow-ico { font-size:13px; width:18px; text-align:center; flex-shrink:0; }
+.frow-name { flex:1; color:var(--cyan); }
+.frow-name.dir { color:var(--text); }
+.frow-msg { flex:2; color:var(--text2); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.frow-time { color:var(--text3); font-size:10px; flex-shrink:0; }
+
+.readme-card { border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.readme-card-header {
+  background:var(--surface); padding:9px 14px;
+  border-bottom:1px solid var(--border);
+  font-size:11px; color:var(--text2);
+}
+.readme-body { padding:22px; background:var(--surface); }
+.rh1 {
+  font-family:'Syne',sans-serif; font-size:26px; font-weight:800;
+  background:linear-gradient(90deg, var(--cyan), #a78bfa);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:10px;
+}
+.rp { font-size:12px; color:var(--text2); line-height:1.9; margin-bottom:10px; }
+.rcb {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:8px; padding:14px; font-size:12px; color:var(--green); line-height:1.9; margin:10px 0;
+}
+
+/* ════════════════════════════════════════
+   PAGE 2 — GitX Code (Editor)
+════════════════════════════════════════ */
+#p1 { background:var(--bg); display:flex; flex-direction:column; }
+
+.code-layout { display:flex; flex:1; overflow:hidden; }
+
+.activity-bar {
+  width:42px; flex-shrink:0; background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center;
+  padding:6px 0; gap:2px; z-index:10;
+}
+.ab-btn {
+  width:34px; height:34px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; cursor:pointer; color:var(--text3);
+  transition:all .2s; border:none; background:transparent;
+}
+.ab-btn:hover { color:var(--text2); background:var(--surface2); }
+.ab-btn.on { color:var(--violet); background:var(--violet-dim); }
+.ab-space { flex:1; }
+
+.file-tree {
+  width:200px; flex-shrink:0; border-right:1px solid var(--border);
+  background:var(--surface); overflow-y:auto;
+}
+.ft-head {
+  padding:9px 12px 5px; font-size:9px; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--text3);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.ft-acts { display:flex; gap:3px; }
+.ft-act { font-size:13px; color:var(--text3); cursor:pointer; padding:2px; transition:color .15s; }
+.ft-act:hover { color:var(--text); }
+.ti {
+  display:flex; align-items:center; gap:6px; padding:4px 12px;
+  font-size:11px; color:var(--text2); cursor:pointer; transition:background .1s;
+}
+.ti:hover { background:var(--surface2); color:var(--text); }
+.ti.on { background:var(--violet-dim); color:var(--text); }
+.ti .t-ico { font-size:12px; width:14px; flex-shrink:0; }
+.ti-1 { padding-left:22px; }
+.ti-2 { padding-left:32px; }
+.ti-3 { padding-left:42px; }
+
+/* Editor center + AI right panel split */
+.editor-center { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+
+.editor-area { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+
+.ed-tabs {
+  display:flex; background:var(--surface);
+  border-bottom:1px solid var(--border); overflow-x:auto;
+  flex-shrink:0;
+}
+.ed-tabs::-webkit-scrollbar { height:0; }
+.et {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 14px; font-size:11px; color:var(--text2);
+  cursor:pointer; border-right:1px solid var(--border);
+  white-space:nowrap; transition:background .15s;
+  border-bottom:2px solid transparent;
+}
+.et:hover { background:var(--surface2); }
+.et.on { background:var(--bg); color:var(--text); border-bottom-color:var(--violet); }
+.et-dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; }
+.et-x { color:var(--text3); font-size:13px; margin-left:2px; }
+.et-x:hover { color:var(--text); }
+
+.ed-bc {
+  padding:5px 14px; font-size:10px; color:var(--text3);
+  border-bottom:1px solid var(--border); background:var(--bg);
+  display:flex; gap:4px; flex-shrink:0; align-items:center;
+}
+.bc-s { color:var(--border3); }
+.ed-bc-actions { margin-left:auto; display:flex; gap:6px; }
+.ed-bc-btn {
+  padding:2px 8px; border-radius:4px; font-size:10px; font-family:inherit;
+  cursor:pointer; border:1px solid var(--border2); background:transparent; color:var(--text3);
+  transition:all .15s;
+}
+.ed-bc-btn:hover { color:var(--violet); border-color:var(--violet); }
+.ed-bc-btn.ask-ai { color:var(--violet); border-color:rgba(139,92,246,.4); background:var(--violet-dim); }
+.ed-bc-btn.ask-ai:hover { background:rgba(139,92,246,.2); }
+
+.code-view { flex:1; display:flex; overflow:hidden; }
+.ln {
+  padding:14px 0; text-align:right; color:var(--text3);
+  font-size:12px; line-height:1.75; user-select:none;
+  min-width:44px; padding-right:10px; border-right:1px solid var(--border);
+  background:var(--surface); flex-shrink:0;
+}
+.ce {
+  flex:1; padding:14px 18px; font-size:12px; line-height:1.75;
+  overflow:auto; outline:none; white-space:pre; tab-size:2;
+  color:var(--text); background:var(--bg); position:relative;
+}
+.ce:focus { outline:none; }
+
+/* inline suggestion ghost text */
+.ghost-suggestion {
+  position:absolute; pointer-events:none;
+  color:rgba(139,92,246,.45); font-style:italic;
+  font-size:12px; line-height:1.75;
+  animation: ghostFade .3s ease;
+}
+@keyframes ghostFade { from{opacity:0;transform:translateY(2px)} to{opacity:1;transform:none} }
+
+/* syntax */
+.kw { color:#ff7b72; } .fn { color:#d2a8ff; } .str { color:#a5d6ff; }
+.cm { color:var(--text3); font-style:italic; } .num { color:#79c0ff; }
+.cls { color:#ffa657; } .tag { color:#7ee787; } .attr { color:#79c0ff; }
+.op { color:#ff7b72; } .prop { color:var(--cyan); }
+
+/* inline diff highlight */
+.diff-add { background:rgba(16,185,129,.12); border-left:2px solid var(--green); }
+.diff-del { background:rgba(239,68,68,.1); text-decoration:line-through; color:var(--text3); }
+
+.ed-status {
+  height:22px; background:var(--violet); display:flex; align-items:center;
+  padding:0 12px; gap:14px; font-size:10px; color:rgba(255,255,255,.8);
+  flex-shrink:0;
+}
+.es-item { display:flex; align-items:center; gap:3px; cursor:pointer; }
+.es-item:hover { color:white; }
+.es-space { flex:1; }
+
+/* ─ TERMINAL ─ */
+.terminal-panel {
+  flex-shrink:0; border-top:1px solid var(--border);
+  background:var(--bg); display:flex; flex-direction:column;
+  height:180px; min-height:80px; max-height:380px;
+  resize:vertical; overflow:hidden;
+  transition: height .2s ease;
+}
+.term-header {
+  display:flex; align-items:center; gap:0;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.term-tab {
+  padding:5px 14px; font-size:11px; color:var(--text3);
+  cursor:pointer; border-bottom:2px solid transparent; transition:all .15s;
+  display:flex; align-items:center; gap:5px;
+}
+.term-tab:hover { color:var(--text2); }
+.term-tab.on { color:var(--text); border-bottom-color:var(--green); }
+.term-live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:amberPulse 1.2s infinite; }
+.term-header-actions { margin-left:auto; display:flex; gap:4px; padding-right:8px; }
+.term-hbtn {
+  width:22px; height:22px; border-radius:4px; border:none; background:transparent;
+  color:var(--text3); cursor:pointer; font-size:12px; transition:all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.term-hbtn:hover { background:var(--surface2); color:var(--text); }
+
+.term-body {
+  flex:1; overflow-y:auto; padding:8px 12px;
+  font-size:11.5px; line-height:1.7; color:var(--text2);
+}
+.term-body::-webkit-scrollbar { width:4px; }
+.term-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.term-line { display:flex; gap:8px; margin-bottom:1px; }
+.term-prompt { color:var(--violet); flex-shrink:0; }
+.term-path { color:var(--cyan); flex-shrink:0; }
+.term-cmd { color:var(--text); }
+.term-out { color:var(--text2); padding-left:4px; }
+.term-out.ok { color:var(--green); }
+.term-out.err { color:var(--red); }
+.term-out.warn { color:var(--amber); }
+.term-out.info { color:var(--cyan); }
+
+.term-input-row {
+  display:flex; align-items:center; gap:6px;
+  padding:4px 12px 8px; flex-shrink:0;
+  border-top:1px solid var(--border);
+}
+.term-input-prompt { color:var(--violet); font-size:12px; white-space:nowrap; }
+.term-input {
+  flex:1; background:transparent; border:none; outline:none;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);
+  caret-color:var(--green);
+}
+.term-input::placeholder { color:var(--text4); }
+
+/* ═══════════════════════════════════════
+   AI ASSISTANT PANEL (right side)
+═══════════════════════════════════════ */
+.ai-panel {
+  width:340px; flex-shrink:0; border-left:1px solid var(--border);
+  background:var(--surface); display:flex; flex-direction:column;
+  overflow:hidden; position:relative;
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+}
+.ai-panel.collapsed { width:0; border-left:none; }
+
+/* resize handle */
+.ai-resize-handle {
+  position:absolute; left:0; top:0; bottom:0; width:4px;
+  cursor:col-resize; z-index:20;
+  transition:background .2s;
+}
+.ai-resize-handle:hover { background:rgba(139,92,246,.4); }
+
+.ai-panel-header {
+  padding:10px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+  background:var(--surface2);
+}
+.aph-glow {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--violet); flex-shrink:0;
+  box-shadow:0 0 8px rgba(139,92,246,.7);
+  animation:violetPulse 2s ease-in-out infinite;
+}
+@keyframes violetPulse { 0%,100%{box-shadow:0 0 8px rgba(139,92,246,.7)} 50%{box-shadow:0 0 18px rgba(139,92,246,1)} }
+.aph-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; flex:1; color:var(--text); }
+.aph-model {
+  font-size:10px; color:var(--violet); background:var(--violet-dim);
+  border:1px solid rgba(139,92,246,.25); border-radius:5px; padding:2px 7px;
+  cursor:pointer; transition:all .2s;
+}
+.aph-model:hover { background:rgba(139,92,246,.2); }
+.aph-close {
+  font-size:16px; color:var(--text3); cursor:pointer;
+  border:none; background:none; transition:color .15s;
+}
+.aph-close:hover { color:var(--text); }
+
+/* AI capability chips */
+.ai-caps {
+  display:flex; gap:5px; padding:8px 12px;
+  border-bottom:1px solid var(--border); flex-wrap:wrap; flex-shrink:0;
+}
+.ai-cap {
+  padding:3px 8px; border-radius:5px; font-size:10px;
+  border:1px solid; cursor:pointer; transition:all .15s;
+}
+.ai-cap-debug { border-color:rgba(239,68,68,.3); color:var(--red); background:var(--red-dim); }
+.ai-cap-suggest { border-color:rgba(139,92,246,.3); color:var(--violet); background:var(--violet-dim); }
+.ai-cap-refactor { border-color:rgba(0,229,255,.3); color:var(--cyan); background:var(--cyan-dim); }
+.ai-cap-explain { border-color:rgba(16,185,129,.3); color:var(--green); background:var(--green-dim); }
+.ai-cap-test { border-color:rgba(245,158,11,.3); color:var(--amber); background:var(--amber-dim); }
+.ai-cap:hover { filter:brightness(1.2); transform:translateY(-1px); }
+
+/* messages */
+.ai-msgs { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px; }
+.ai-msgs::-webkit-scrollbar { width:4px; }
+.ai-msgs::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.ai-msg { display:flex; gap:8px; animation:msgSlide .25s cubic-bezier(.34,1.2,.64,1); }
+@keyframes msgSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.ai-msg.user { flex-direction:row-reverse; }
+
+.ai-avatar {
+  width:26px; height:26px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:12px;
+}
+.av-ai { background:linear-gradient(135deg,var(--violet),#a78bfa); }
+.av-user { background:linear-gradient(135deg,var(--cyan),#0284c7); }
+
+.ai-bubble {
+  max-width:86%; padding:9px 12px; border-radius:10px;
+  font-size:11.5px; line-height:1.7;
+  animation: bubbleAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease;
+}
+.ai-msg.ai .ai-bubble {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-top-left-radius:3px; color:var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.ai-msg.ai .ai-bubble:hover {
+  background: var(--surface3);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+}
+.ai-msg.user .ai-bubble {
+  background:var(--violet-dim); border:1px solid rgba(139,92,246,.25);
+  border-top-right-radius:3px; color:var(--text);
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.1);
+}
+
+@keyframes bubbleAppear {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* inline code in AI messages */
+.ai-bubble code {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:4px; padding:1px 5px; font-size:11px; color:var(--cyan);
+}
+
+/* code block in AI */
+.ai-code-block {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:7px; margin:6px 0; overflow:hidden;
+}
+.ai-cb-header {
+  display:flex; align-items:center; padding:5px 10px;
+  background:var(--surface3); border-bottom:1px solid var(--border2);
+  font-size:10px; color:var(--text3);
+}
+.ai-cb-lang { flex:1; }
+.ai-cb-copy {
+  font-size:10px; cursor:pointer; color:var(--text3);
+  border:1px solid var(--border2); border-radius:3px; padding:1px 6px;
+  background:transparent; font-family:inherit; transition:all .15s;
+}
+.ai-cb-copy:hover { color:var(--violet); border-color:var(--violet); }
+.ai-cb-apply {
+  font-size:10px; cursor:pointer; color:var(--green);
+  border:1px solid rgba(16,185,129,.3); border-radius:3px; padding:1px 6px;
+  background:var(--green-dim); font-family:inherit; margin-right:4px; transition:all .15s;
+}
+.ai-cb-apply:hover { background:rgba(16,185,129,.2); }
+.ai-cb-body { padding:10px; font-size:11px; line-height:1.75; color:var(--green); overflow-x:auto; }
+
+/* diff view */
+.ai-diff {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:7px; margin:6px 0; overflow:hidden;
+}
+.ai-diff-header {
+  padding:5px 10px; background:var(--surface3);
+  border-bottom:1px solid var(--border2); font-size:10px; color:var(--text3);
+  display:flex; align-items:center; gap:8px;
+}
+.diff-btn-accept {
+  margin-left:auto; padding:2px 8px; border-radius:4px; font-size:10px;
+  background:var(--green-dim); border:1px solid rgba(16,185,129,.3); color:var(--green);
+  cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.diff-btn-accept:hover { background:rgba(16,185,129,.2); }
+.diff-btn-reject {
+  padding:2px 8px; border-radius:4px; font-size:10px;
+  background:var(--red-dim); border:1px solid rgba(239,68,68,.3); color:var(--red);
+  cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.diff-btn-reject:hover { background:rgba(239,68,68,.2); }
+.ai-diff-line { display:flex; font-size:11px; line-height:1.7; padding:0 10px; }
+.dl-add { background:rgba(16,185,129,.08); color:var(--green); }
+.dl-del { background:rgba(239,68,68,.07); color:var(--red); text-decoration:line-through; }
+.dl-ctx { color:var(--text2); }
+.dl-sym { width:14px; flex-shrink:0; }
+
+/* thinking animation */
+.ai-thinking-bubble {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; border-top-left-radius:3px;
+  padding:10px 14px; display:flex; align-items:center; gap:8px;
+  font-size:11px; color:var(--text3);
+}
+.think-dots { display:flex; gap:4px; }
+.think-dot {
+  width:5px; height:5px; border-radius:50%; background:var(--violet);
+  animation:thinkPop 1.2s ease-in-out infinite;
+}
+.think-dot:nth-child(2) { animation-delay:.2s; }
+.think-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes thinkPop { 0%,80%,100%{opacity:.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.3)} }
+
+/* AI input */
+.ai-input-wrap {
+  padding:10px; border-top:1px solid var(--border); flex-shrink:0;
+}
+.ai-input-box {
+  background:var(--bg); border:1px solid var(--border2);
+  border-radius:9px; overflow:hidden;
+  transition:border-color .2s, box-shadow .2s;
+}
+.ai-input-box:focus-within {
+  border-color:rgba(139,92,246,.5);
+  box-shadow:0 0 0 3px rgba(139,92,246,.1);
+}
+.ai-input-context {
+  display:flex; align-items:center; gap:6px; padding:5px 10px;
+  border-bottom:1px solid var(--border); flex-wrap:wrap;
+}
+.ctx-chip {
+  display:flex; align-items:center; gap:4px; padding:2px 7px;
+  border-radius:5px; font-size:10px; background:var(--violet-dim);
+  border:1px solid rgba(139,92,246,.2); color:var(--violet); cursor:pointer;
+  transition:all .15s;
+}
+.ctx-chip:hover { background:rgba(139,92,246,.2); }
+.ctx-chip-add {
+  border-style:dashed; color:var(--text3); background:transparent;
+  border-color:var(--border2);
+}
+.ctx-chip-add:hover { color:var(--violet); border-color:rgba(139,92,246,.4); }
+.ai-textarea {
+  width:100%; padding:8px 10px; background:transparent; border:none; outline:none;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);
+  resize:none; min-height:56px; line-height:1.6; caret-color:var(--violet);
+}
+.ai-textarea::placeholder { color:var(--text4); }
+.ai-input-footer {
+  display:flex; align-items:center; padding:5px 10px;
+  gap:6px; border-top:1px solid var(--border);
+}
+.ai-footer-hint { flex:1; font-size:10px; color:var(--text4); }
+.ai-send {
+  padding:5px 14px; border-radius:7px; border:none;
+  background:linear-gradient(135deg,var(--violet),#7c3aed);
+  color:white; font-family:inherit; font-size:11px; font-weight:600;
+  cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:5px;
+}
+.ai-send:hover { filter:brightness(1.15); transform:translateY(-1px); }
+.ai-send:active { transform:none; }
+
+/* toggle AI panel button in topbar area */
+.toggle-ai-btn {
+  display:flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:6px; border:1px solid rgba(139,92,246,.3);
+  background:var(--violet-dim); color:var(--violet); font-family:inherit;
+  font-size:10px; cursor:pointer; transition:all .2s; white-space:nowrap;
+}
+.toggle-ai-btn:hover { background:rgba(139,92,246,.2); border-color:var(--violet); }
+
+
+/* ════════════════════════════════════════
+   PAGE 3 — GitX Pipeline (CI/CD)
+════════════════════════════════════════ */
+#p2 { background:var(--bg); display:flex; flex-direction:column; }
+
+.pipe-layout { display:flex; flex:1; overflow:hidden; }
+
+/* pipeline sidebar */
+.pipe-side {
+  width:240px; flex-shrink:0; border-right:1px solid var(--border);
+  background:var(--surface); display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.ps-header {
+  padding:14px; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.ps-title {
+  font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+  color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.ps-title-dot { width:8px; height:8px; border-radius:50%; background:var(--amber); flex-shrink:0; animation:amberPulse 1.5s ease-in-out infinite; }
+@keyframes amberPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.create-pipe-btn {
+  width:100%; padding:8px 12px; border-radius:7px;
+  background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05));
+  border:1px solid rgba(245,158,11,.3); color:var(--amber);
+  font-family:inherit; font-size:11px; cursor:pointer; transition:all .2s;
+  text-align:left; display:flex; align-items:center; gap:7px;
+}
+.create-pipe-btn:hover { border-color:var(--amber); }
+
+.ps-nav { flex:1; overflow-y:auto; padding:8px 0; }
+.ps-section-label {
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text3); padding:8px 12px 4px;
+}
+.ps-item {
+  display:flex; align-items:center; gap:8px; padding:7px 12px;
+  font-size:11px; color:var(--text2); cursor:pointer; transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-left:2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+.ps-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.1), transparent);
+  transform: translateX(-110%);
+  transition: transform 0.6s ease;
+}
+.ps-item:hover {
+  background:var(--surface2);
+  color:var(--text);
+  padding-left: 14px;
+  transform: translateX(1px);
+}
+.ps-item:hover::before {
+  transform: translateX(110%);
+}
+.ps-item.on {
+  background:var(--amber-dim);
+  color:var(--amber);
+  border-left-color:var(--amber);
+  box-shadow: inset 0 0 12px rgba(245, 158, 11, 0.15);
+}
+.ps-status {
+  margin-left:auto; width:7px; height:7px; border-radius:50%; flex-shrink:0;
+}
+.s-pass { background:var(--green); }
+.s-fail { background:var(--red); }
+.s-run { background:var(--amber); animation:amberPulse 1.2s infinite; }
+.s-wait { background:var(--border3); }
+
+.ps-footer { padding:10px; border-top:1px solid var(--border); flex-shrink:0; }
+.infra-badge {
+  display:flex; align-items:center; gap:6px; padding:6px 8px;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:6px; font-size:10px; color:var(--text2); margin-bottom:4px;
+  cursor:pointer; transition:border-color .2s;
+}
+.infra-badge:hover { border-color:var(--amber); }
+
+/* pipeline main */
+.pipe-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+.pipe-topbar {
+  padding:12px 18px; border-bottom:1px solid var(--border);
+  background:var(--surface); display:flex; align-items:center; gap:12px; flex-shrink:0;
+}
+.pipe-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.pipe-branch {
+  display:flex; align-items:center; gap:6px; padding:4px 10px;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:6px; font-size:11px; color:var(--text2);
+}
+.pipe-spacer { flex:1; }
+.pipe-btn {
+  padding:6px 14px; border-radius:7px; font-family:inherit; font-size:11px;
+  cursor:pointer; transition:all .2s; border:1px solid var(--border2);
+  background:transparent; color:var(--text2);
+}
+.pipe-btn:hover { color:var(--text); border-color:var(--border3); }
+.pipe-btn.run {
+  background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05));
+  border-color:rgba(245,158,11,.4); color:var(--amber); font-weight:600;
+}
+.pipe-btn.run:hover { background:var(--amber-dim); border-color:var(--amber); }
+
+.pipe-content { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:16px; }
+
+/* Pipeline visualizer */
+.pipeline-viz {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:18px; overflow-x:auto;
+}
+.pviz-title {
+  font-size:11px; letter-spacing:1px; color:var(--text3); margin-bottom:14px;
+  text-transform:uppercase;
+}
+.pviz-stages { display:flex; align-items:center; gap:0; }
+.pviz-stage {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  min-width:90px;
+}
+.pviz-connector {
+  flex:1; height:2px; background:var(--border2); position:relative;
+  min-width:20px;
+}
+.pviz-connector.done { background:linear-gradient(90deg, var(--green), var(--green)); }
+.pviz-connector.run { background:linear-gradient(90deg, var(--green), var(--amber)); }
+.pviz-connector::after {
+  content:''; position:absolute; right:-5px; top:-3px;
+  border-left:8px solid var(--border2); border-top:4px solid transparent; border-bottom:4px solid transparent;
+}
+.pviz-connector.done::after { border-left-color:var(--green); }
+.pviz-connector.run::after { border-left-color:var(--amber); }
+
+.stage-node {
+  width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; border:2px solid var(--border2);
+  background:var(--surface2); position:relative; cursor:pointer;
+  transition:all .2s;
+}
+.stage-node:hover { transform:scale(1.1); }
+.stage-node.done { border-color:var(--green); background:rgba(16,185,129,.1); }
+.stage-node.running { border-color:var(--amber); background:rgba(245,158,11,.1); animation:nodePulse 1s ease-in-out infinite; }
+.stage-node.fail { border-color:var(--red); background:rgba(239,68,68,.1); }
+.stage-node.pending { border-color:var(--border3); }
+@keyframes nodePulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 14px rgba(245,158,11,.4)} }
+.stage-label { font-size:10px; color:var(--text2); text-align:center; max-width:80px; }
+.stage-time { font-size:9px; color:var(--text3); }
+
+/* Build runs table */
+.runs-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+.rc-head {
+  padding:12px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+  font-size:11px; color:var(--text2);
+}
+.rc-head strong { color:var(--text); font-size:13px; flex:1; font-family:'Syne',sans-serif; font-weight:600; }
+.run-row {
+  display:flex; align-items:center; gap:12px; padding:11px 16px;
+  border-bottom:1px solid var(--border); cursor:pointer;
+  transition:all .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size:11px;
+  position: relative;
+  overflow: hidden;
+}
+.run-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--green), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.run-row:last-child { border-bottom:none; }
+.run-row:hover {
+  background:var(--surface2);
+  transform: translateX(4px);
+}
+.run-row:hover::before {
+  opacity: 1;
+}
+.run-row:active {
+  transform: translateX(2px) scale(0.99);
+}
+.run-status-icon { font-size:14px; flex-shrink:0; width:18px; text-align:center; }
+.run-num { color:var(--text3); flex-shrink:0; width:40px; }
+.run-msg { flex:1; color:var(--text); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.run-branch {
+  background:var(--surface3); border:1px solid var(--border2);
+  border-radius:4px; padding:1px 6px; font-size:10px; color:var(--text2); flex-shrink:0;
+}
+.run-dur { color:var(--text3); flex-shrink:0; width:50px; text-align:right; }
+.run-ago { color:var(--text3); flex-shrink:0; width:55px; text-align:right; }
+
+/* Metrics row */
+.metrics-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.metric-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:14px 16px;
+}
+.mc-label { font-size:10px; color:var(--text3); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.mc-val { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; color:var(--text); }
+.mc-sub { font-size:10px; margin-top:4px; display:flex; align-items:center; gap:4px; }
+.mc-up { color:var(--green); }
+.mc-dn { color:var(--red); }
+
+/* Pipeline Builder Modal */
+.modal-overlay {
+  position:fixed; inset:0; z-index:800;
+  background:rgba(0,0,0,.7); backdrop-filter:blur(8px);
+  display:none; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius-lg); width:min(800px,95vw); max-height:85vh;
+  display:flex; flex-direction:column; overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  animation:modalIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.9) translateY(20px)} to{opacity:1;transform:none} }
+.modal-header {
+  padding:16px 20px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+.modal-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; flex:1; }
+.modal-close { font-size:18px; color:var(--text3); cursor:pointer; border:none; background:none; }
+.modal-close:hover { color:var(--text); }
+.modal-body { flex:1; overflow-y:auto; padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group.full { grid-column:1/-1; }
+.form-label { font-size:11px; color:var(--text2); letter-spacing:.5px; }
+.form-input, .form-select, .form-textarea {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:var(--radius-sm); padding:8px 10px;
+  font-family:inherit; font-size:12px; color:var(--text); outline:none;
+  transition:border-color .2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--amber); }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-select option { background:var(--surface2); }
+.modal-footer {
+  padding:14px 20px; border-top:1px solid var(--border);
+  display:flex; gap:8px; justify-content:flex-end; flex-shrink:0;
+}
+.mf-cancel { padding:7px 16px; border-radius:7px; border:1px solid var(--border2); background:transparent; color:var(--text2); font-family:inherit; font-size:12px; cursor:pointer; }
+.mf-cancel:hover { color:var(--text); }
+.mf-create { padding:7px 16px; border-radius:7px; border:none; background:linear-gradient(135deg,var(--amber),var(--orange)); color:var(--bg); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+.mf-create:hover { filter:brightness(1.1); }
+
+/* Step builder */
+.steps-builder { grid-column:1/-1; }
+.steps-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.step-item {
+  display:flex; align-items:center; gap:8px; padding:8px 10px;
+  background:var(--surface3); border:1px solid var(--border2); border-radius:6px;
+}
+.step-drag { color:var(--text3); cursor:grab; }
+.step-name { flex:1; font-size:12px; color:var(--text); }
+.step-type { font-size:10px; color:var(--text3); background:var(--surface2); padding:2px 6px; border-radius:4px; }
+.step-del { color:var(--text3); cursor:pointer; font-size:14px; border:none; background:none; }
+.step-del:hover { color:var(--red); }
+.add-step-btn {
+  display:flex; align-items:center; gap:6px; width:100%;
+  padding:7px 10px; border-radius:6px; border:1px dashed var(--border2);
+  background:transparent; color:var(--text3); font-family:inherit; font-size:11px;
+  cursor:pointer; transition:all .2s; margin-top:6px;
+}
+.add-step-btn:hover { border-color:var(--amber); color:var(--amber); }
+
+/* Log viewer */
+.log-panel {
+  background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+  font-size:11px; line-height:1.8; padding:12px 14px; max-height:160px; overflow-y:auto;
+  font-family:'JetBrains Mono',monospace;
+}
+.log-line { display:flex; gap:10px; }
+.log-time { color:var(--text3); flex-shrink:0; }
+.log-info { color:var(--text2); }
+.log-success { color:var(--green); }
+.log-warn { color:var(--amber); }
+.log-error { color:var(--red); }
+.log-cmd { color:var(--cyan); }
+
+/* ════════════════════════════════════════
+   ADVANCED ANIMATIONS & TRANSITIONS
+════════════════════════════════════════ */
+
+/* reduced motion support */
+.reduced-motion *, .reduced-motion *::before, .reduced-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.reduced-motion body {
+  scroll-behavior: auto;
+}
+
+/* high contrast support */
+@media (prefers-contrast: more) {
+  :root {
+    --text: #ffffff;
+    --text2: #eeeeee;
+    --border: #ffffff;
+    --bg: #000000;
+    --bg2: #000000;
+    --surface: #111111;
+  }
+  .topbar, .page, .g-side, .pipe-side, .activity-bar, .ai-panel {
+    background: #000;
+    border-color: #fff;
+  }
+}
+
+
+/* Smooth scroll behavior on all elements */
+html { scroll-behavior: smooth; }
+.g-body, .term-body, .ai-msgs { scroll-behavior: smooth; }
+
+/* Button press effect */
+button { transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.08s ease; }
+button:active { transform: scale(0.96) }
+
+/* Better input transitions */
+input:focus, textarea:focus, select:focus { 
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Hover elevation effect */
+.page, .g-btn, .rbadge, .gtab, .g-tabs, .pipe-btn {
+  transition: all 0.25s cubic-bezier(0.34, 0.48, 0.61, 1);
+}
+
+.g-btn:hover, .rbadge:hover, .pipe-btn:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Smooth list item reveal animation */
+.frow, .run-row, .gsi, .ps-item, .ti {
+  animation: revealItem 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.frow:nth-child(1) { animation-delay: 0.05s; }
+.frow:nth-child(2) { animation-delay: 0.1s; }
+.frow:nth-child(3) { animation-delay: 0.15s; }
+.frow:nth-child(4) { animation-delay: 0.2s; }
+.frow:nth-child(n+5) { animation-delay: 0.25s; }
+
+@keyframes revealItem {
+  from { opacity: 0; transform: translateX(-8px) }
+  to { opacity: 1; transform: translateX(0) }
+}
+
+/* Smooth color transitions */
+.pnav, .ltog, .gtab, .et, .wd, .ab-btn, .term-tab, .ps-item {
+  transition: all 0.2s ease-out;
+}
+
+/* Attention pulse on active elements */
+.pnav.active, .gtab.on, .et.on, .ab-btn.on, .ps-item.on {
+  animation: activeGlow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes activeGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+  100% { filter: brightness(1.08); }
+}
+
+/* Snappy toggle transitions */
+.ltog, .wd, .ab-btn {
+  transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ltog:hover, .wd:hover, .ab-btn:hover {
+  transform: scale(1.08);
+}
+
+/* Toast stagger animation */
+.toast.show {
+  animation: toastSlide 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes toastSlide {
+  from { transform: translateX(calc(100% + 20px)); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Modal backdrop fade + scale */
+.modal-overlay.open {
+  animation: backdropFade 0.25s ease;
+}
+@keyframes backdropFade {
+  from { backdrop-filter: blur(0px) }
+  to { backdrop-filter: blur(8px) }
+}
+
+/* Whisper animations for tooltips & hints */
+[title]:hover::after {
+  animation: whisper 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth state change animations */
+.page::after {
+  animation: accentLineAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes accentLineAppear {
+  from { opacity: 0; width: 0; }
+  to { opacity: 1; width: 80%; }
+}
+
+/* Elegant focus ring */
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+  transition: outline-offset 0.15s ease;
+}
+
+/* Better drag handle feedback */
+.step-drag {
+  transition: all 0.15s ease;
+  cursor: grab;
+}
+.step-drag:active {
+  cursor: grabbing;
+  opacity: 0.6;
+}
+
+/* Smooth scrollbar transitions */
+::-webkit-scrollbar-thumb {
+  transition: background 0.2s ease;
+}
+
+/* Code syntax color transitions */
+.kw, .fn, .str, .cm, .num, .cls, .tag, .attr, .op, .prop {
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+/* Text selection styling */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: var(--text);
+}
+
+/* Smooth gradient text on hover */
+.brand-name, .splash-name {
+  background-image: linear-gradient(90deg, var(--cyan), #a78bfa);
+  background-size: 200% 100%;
+  transition: background-position 0.3s ease;
+}
+.topbar-brand:hover .brand-name {
+  animation: gradientShift 0.8s ease infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+/* Bouncy badge animations */
+.gsi-badge, .gtab-n, .rbadge {
+  animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes badgePop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Smooth status indicator pulse */
+.ps-status.s-run, .term-live-dot {
+  animation: statusPulse 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.2); }
+}
+
+/* Typing animation for input hints */
+input::placeholder, textarea::placeholder {
+  animation: placeholderFade 3s ease-in-out infinite;
+}
+@keyframes placeholderFade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* Smooth loading spinner */
+.thinking-bubble {
+  animation: thinkBubbleSpin 0.8s linear infinite;
+}
+
+/* Code block highlight animation */
+.code-view {
+  transition: background-color 0.2s ease;
+}
+
+/* AI response fade-in and slide */
+.ai-msg {
+  animation: aiMessageSweep 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes aiMessageSweep {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover scale for interactive elements */
+.rbadge:hover, .repo-path:hover, .file-list .frow:hover .frow-name {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Smooth breadcrumb navigation */
+.ed-bc {
+  animation: breadcrumbSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes breadcrumbSlide {
+  from { transform: translateY(-4px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Better file tree item hover */
+.ti {
+  position: relative;
+  overflow: hidden;
+}
+.ti::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+.ti:hover::before {
+  transform: translateX(100%);
+}
+
+/* Smooth panel resize feedback */
+.editor-center, .ai-panel {
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Enhanced text feedback */
+.text, em, strong {
+  transition: color 0.2s ease;
+}
+
+/* Smooth navigation transitions */
+#track {
+  transition: transform 0.65s cubic-bezier(0.77, 0, 0.175, 1) !important;
+}
+</style>
+</head>
+<body>
+  <!-- accessibility: skip link -->
+  <a href="#app" class="skip-link" style="position:absolute;top:-40px;left:10px;background:var(--cyan);color:var(--bg);padding:8px 12px;border-radius:4px;z-index:3000;transition:top .3s;" onfocus="this.style.top='10px'" onblur="this.style.top='-40px'">Skip to app</a>
+
+<!-- ══════ SPLASH ══════ -->
+<div id="splash">
+  <div class="grid-bg"></div>
+  <div class="splash-particles"></div>
+  <div class="splash-inner">
+    <div class="splash-logo-wrap">
+      <div class="splash-hexagon">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,4 93,27.5 93,72.5 50,96 7,72.5 7,27.5" fill="none" stroke="url(#hg)" stroke-width="3"/>
+          <polygon points="50,18 80,34.5 80,65.5 50,82 20,65.5 20,34.5" fill="url(#hf)" opacity=".15"/>
+          <text x="50" y="58" text-anchor="middle" font-size="28" fill="url(#hg)" font-family="Syne,sans-serif" font-weight="800">G</text>
+          <defs>
+            <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00e5ff"/>
+              <stop offset="50%" stop-color="#8b5cf6"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+            <linearGradient id="hf" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00e5ff"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <div class="splash-name">GitX</div>
+        <div class="splash-version">v2.0 · Open Source Platform</div>
+      </div>
+    </div>
+    <div class="splash-tagline">
+      Repository · Editor · <em>CI/CD Pipeline</em><br>Everything you need to ship.
+    </div>
+    <div class="splash-shortcut-ring">
+      <div class="key-badge">Alt</div>
+      <div class="shortcut-plus">+</div>
+      <div class="key-badge">I</div>
+      <div class="shortcut-text">to enter &nbsp;·&nbsp; Alt+E to exit &nbsp;·&nbsp; Use ← → arrows to navigate</div>
+    </div>
+    <div class="splash-author">Created by <strong>Akshay Kumar Prasad, Future MLOps Architect</strong></div>
+  </div>
+</div>
+
+<!-- ══════ APP ══════ -->
+<div id="app" role="application" aria-label="GitX development platform">
+
+  <!-- TOP BAR -->
+  <div class="topbar" role="navigation" aria-label="Top bar">
+    <div class="win-dots">
+      <div class="wd wd-r" title="Close">×</div>
+      <div class="wd wd-y" title="Minimize">−</div>
+      <div class="wd wd-g" title="Fullscreen">⤢</div>
+    </div>
+    <div class="topbar-brand">
+      <span class="brand-hex">⬡</span>
+      <span class="brand-name">GitX</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="page-nav" id="pageNav">
+      <button class="pnav active" data-p="0" onclick="go(0)" title="Alt+1 or ← arrow" aria-label="Go to GitX Repository page"><span class="pnav-icon" aria-hidden="true">◈</span> GitX Repository</button>
+      <button class="pnav" data-p="1" onclick="go(1)" title="Alt+2" aria-label="Go to GitX Code editor page"><span class="pnav-icon" aria-hidden="true">{ }</span> GitX Code</button>
+      <button class="pnav" data-p="2" onclick="go(2)" title="Alt+3 or → arrow" aria-label="Go to GitX Pipeline page"><span class="pnav-icon" aria-hidden="true">⚡</span> GitX Pipeline</button>
+    </div>
+    <div class="layout-toggle">
+      <button class="ltog active" onclick="setLayout(1)" title="Single">▣</button>
+      <button class="ltog" onclick="setLayout(2)" title="Split 2">◫</button>
+      <button class="ltog" onclick="setLayout(3)" title="All">⊟</button>
+    </div>
+    <button class="exit-btn" onclick="exitApp()">Alt+E ✕</button>
+  </div>
+
+  <!-- navigation arrows -->
+  <div class="nav-arrow left" onclick="go(Math.max(curPage-1,0))" aria-label="Previous page">‹</div>
+  <div class="nav-arrow right" onclick="go(Math.min(curPage+1,2))" aria-label="Next page">›</div>
+
+  <!-- PAGES -->
+  <div id="page-wrap">
+    <div id="track">
+
+      <!-- ════ PAGE 1: GitX Repository ════ -->
+      <div class="page" id="p0">
+        <div class="git-layout">
+          <div class="g-side">
+            <div class="gsec">
+              <div class="gsec-label">Pinned</div>
+              <div class="gsi on"><span class="ico">◈</span>gitx<span class="gsi-badge">main</span></div>
+              <div class="gsi"><span class="ico">◈</span>neural-core</div>
+              <div class="gsi"><span class="ico">◈</span>devx-engine</div>
+            </div>
+            <div class="gsec">
+              <div class="gsec-label">Repositories</div>
+              <div class="gsi"><span class="ico">⬡</span>gitx</div>
+              <div class="gsi"><span class="ico">⬡</span>pipeline-core</div>
+              <div class="gsi"><span class="ico">⬡</span>ml-experiments</div>
+              <div class="gsi"><span class="ico">⬡</span>zero-latency-ui</div>
+              <div class="gsi"><span class="ico">⬡</span>infra-charts</div>
+            </div>
+            <div class="gsec">
+              <div class="gsec-label">Explore</div>
+              <div class="gsi"><span class="ico">★</span>Starred</div>
+              <div class="gsi"><span class="ico">⑂</span>Forks</div>
+              <div class="gsi"><span class="ico">◎</span>Issues</div>
+              <div class="gsi"><span class="ico">⇄</span>Pull Requests</div>
+              <div class="gsi"><span class="ico">⚡</span>Pipelines</div>
+              <div class="gsi"><span class="ico">◆</span>Packages</div>
+            </div>
+          </div>
+          <div class="g-main">
+            <div class="g-header">
+              <div class="repo-path"><span class="rp-owner">creator</span><span class="rp-sep">/</span><span class="rp-name">gitx</span></div>
+              <div class="repo-badges">
+                <div class="rbadge rb-pub">◉ Public</div>
+                <div class="rbadge rb-star">★ Star <strong>3.1k</strong></div>
+                <div class="rbadge rb-fork">⑂ Fork <strong>428</strong></div>
+                <div class="rbadge rb-watch">◎ Watch <strong>112</strong></div>
+              </div>
+            </div>
+            <div class="g-tabs">
+              <div class="gtab on">⬡ Code</div>
+              <div class="gtab">◎ Issues <span class="gtab-n">18</span></div>
+              <div class="gtab">⇄ Pull Requests <span class="gtab-n">5</span></div>
+              <div class="gtab">⚡ Actions</div>
+              <div class="gtab">⊞ Projects</div>
+              <div class="gtab">☆ Wiki</div>
+              <div class="gtab">⚙ Settings</div>
+            </div>
+            <div class="g-body">
+              <div class="g-meta">
+                <div class="branch-pill">⌥ main ▾</div>
+                <div class="ci"><strong>1,024</strong> commits · <strong>4</strong> branches · <strong>16</strong> tags</div>
+                <div class="g-meta-actions">
+                  <button class="g-btn">⬇ Clone</button>
+                  <button class="g-btn primary" onclick="toast('Pushed!','Code pushed to origin/main')">⬆ Push</button>
+                </div>
+              </div>
+              <div class="file-list">
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">.github</span><span class="frow-msg">ci: update pipeline matrix for openshift</span><span class="frow-time">1h ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">apps</span><span class="frow-msg">feat: three-page layout with swipe gestures</span><span class="frow-time">2h ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">packages</span><span class="frow-msg">feat: monorepo turborepo setup</span><span class="frow-time">1d ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">helm</span><span class="frow-msg">chore: add argocd application manifests</span><span class="frow-time">2d ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">k8s</span><span class="frow-msg">infra: kubernetes deployment configs</span><span class="frow-time">3d ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">monitoring</span><span class="frow-msg">obs: prometheus + grafana dashboards</span><span class="frow-time">5d ago</span></div>
+                <div class="frow"><span class="frow-ico">📁</span><span class="frow-name dir">docs</span><span class="frow-msg">docs: architecture & API reference</span><span class="frow-time">1w ago</span></div>
+                <div class="frow"><span class="frow-ico">⚙</span><span class="frow-name">Jenkinsfile</span><span class="frow-msg">pipeline: add security scan stage</span><span class="frow-time">4h ago</span></div>
+                <div class="frow"><span class="frow-ico">🐳</span><span class="frow-name">Dockerfile</span><span class="frow-msg">build: multi-stage optimized image</span><span class="frow-time">6h ago</span></div>
+                <div class="frow"><span class="frow-ico">📦</span><span class="frow-name">package.json</span><span class="frow-msg">chore: bump all deps to latest</span><span class="frow-time">8h ago</span></div>
+                <div class="frow"><span class="frow-ico">📝</span><span class="frow-name">README.md</span><span class="frow-msg">docs: complete platform overview</span><span class="frow-time">2d ago</span></div>
+              </div>
+              <div class="readme-card">
+                <div class="readme-card-header">📝 README.md</div>
+                <div class="readme-body">
+                  <div class="rh1">⬡ GitX — Open Source Dev Platform</div>
+                  <div class="rp">The world's most advanced open-source development platform. Combines repository management, intelligent code editing, and Jenkins-grade CI/CD — with ArgoCD GitOps, OpenShift deployment, and Prometheus monitoring built in.</div>
+                  <div class="rcb">
+                    <div style="color:var(--text3);margin-bottom:4px"># Full stack deployment</div>
+                    <div>$ <span style="color:var(--cyan)">npx</span> create-gitx my-project</div>
+                    <div>$ <span style="color:var(--cyan)">cd</span> my-project && <span style="color:var(--amber)">gitx pipeline</span> deploy</div>
+                    <div>$ <span style="color:var(--green)">✔</span> Deployed to OpenShift · Monitoring active</div>
+                  </div>
+                  <div class="rp">Built for developers who are also their own DevOps, QA, and Production engineers.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PAGE 2: GitX Code ════ -->
+      <div class="page" id="p1">
+        <div class="code-layout">
+
+          <!-- Activity bar -->
+          <div class="activity-bar">
+            <button class="ab-btn on" title="Explorer">⊞</button>
+            <button class="ab-btn" title="Search">⌕</button>
+            <button class="ab-btn" title="Source Control">⑂</button>
+            <button class="ab-btn" title="Run & Debug">▷</button>
+            <button class="ab-btn" title="Extensions">⬡</button>
+            <div class="ab-space"></div>
+            <button class="ab-btn" title="GitX AI" onclick="toggleAIPanel()" style="color:var(--violet)">✦</button>
+            <button class="ab-btn" title="Settings">⚙</button>
+          </div>
+
+          <!-- File tree -->
+          <div class="file-tree">
+            <div class="ft-head">Explorer
+              <div class="ft-acts">
+                <span class="ft-act" title="New File">+</span>
+                <span class="ft-act" title="Collapse">−</span>
+              </div>
+            </div>
+            <div class="ti"><span class="t-ico">▾</span>📁 gitx</div>
+            <div class="ti ti-1"><span class="t-ico">▾</span>📁 apps</div>
+            <div class="ti ti-2"><span class="t-ico">▾</span>📁 web</div>
+            <div class="ti ti-3 on"><span class="t-ico"> </span>⚛ App.tsx</div>
+            <div class="ti ti-3"><span class="t-ico"> </span>⚛ Pipeline.tsx</div>
+            <div class="ti ti-3"><span class="t-ico"> </span>⚛ Editor.tsx</div>
+            <div class="ti ti-3"><span class="t-ico"> </span>🎨 theme.css</div>
+            <div class="ti ti-2"><span class="t-ico">▸</span>📁 electron</div>
+            <div class="ti ti-1"><span class="t-ico">▾</span>📁 packages</div>
+            <div class="ti ti-2"><span class="t-ico"> </span>📦 core</div>
+            <div class="ti ti-2"><span class="t-ico"> </span>📦 pipeline-engine</div>
+            <div class="ti ti-2"><span class="t-ico"> </span>📦 git-client</div>
+            <div class="ti ti-1"><span class="t-ico">▾</span>📁 k8s</div>
+            <div class="ti ti-2"><span class="t-ico"> </span>⚙ deployment.yaml</div>
+            <div class="ti ti-2"><span class="t-ico"> </span>⚙ service.yaml</div>
+            <div class="ti ti-1"><span class="t-ico"> </span>⚙ Jenkinsfile</div>
+            <div class="ti ti-1"><span class="t-ico"> </span>🐳 Dockerfile</div>
+          </div>
+
+          <!-- Editor center (editor + terminal stacked) -->
+          <div class="editor-center">
+            <div class="editor-area">
+              <div class="ed-tabs">
+                <div class="et on"><span class="et-dot"></span>App.tsx<span class="et-x">×</span></div>
+                <div class="et">Pipeline.tsx<span class="et-x">×</span></div>
+                <div class="et">Jenkinsfile<span class="et-x">×</span></div>
+                <div style="margin-left:auto;padding:6px 10px;display:flex;align-items:center;">
+                  <button class="toggle-ai-btn" onclick="toggleAIPanel()">✦ GitX AI</button>
+                </div>
+              </div>
+              <div class="ed-bc">
+                apps <span class="bc-s">›</span> web <span class="bc-s">›</span>
+                <span style="color:var(--text)">App.tsx</span>
+                <div class="ed-bc-actions">
+                  <button class="ed-bc-btn ask-ai" onclick="aiQuickAction('explain')">✦ Explain</button>
+                  <button class="ed-bc-btn" onclick="aiQuickAction('debug')">🐛 Debug</button>
+                  <button class="ed-bc-btn" onclick="aiQuickAction('refactor')">⟳ Refactor</button>
+                  <button class="ed-bc-btn" onclick="aiQuickAction('test')">⚗ Tests</button>
+                </div>
+              </div>
+              <div class="code-view">
+                <div class="ln" id="lineNums"></div>
+                <div class="ce" contenteditable="true" spellcheck="false" id="codeEd"></div>
+              </div>
+              <div class="ed-status">
+                <div class="es-item">⑂ main</div>
+                <div class="es-item">✓ 0 errors  ⚠ 1 warning</div>
+                <div class="es-item">⚡ TS 5.5</div>
+                <div class="es-space"></div>
+                <div class="es-item" id="aiStatusItem" style="color:var(--violet)">✦ AI Ready</div>
+                <div class="es-item">Ln 14, Col 32</div>
+                <div class="es-item">UTF-8</div>
+                <div class="es-item">TSX</div>
+              </div>
+            </div>
+
+            <!-- TERMINAL -->
+            <div class="terminal-panel" id="termPanel">
+              <div class="term-header">
+                <div class="term-tab on"><span class="term-live-dot"></span> Terminal</div>
+                <div class="term-tab">Output</div>
+                <div class="term-tab">Problems</div>
+                <div class="term-tab">Debug Console</div>
+                <div class="term-header-actions">
+                  <button class="term-hbtn" onclick="clearTerminal()" title="Clear">⌧</button>
+                  <button class="term-hbtn" onclick="addTerminalTab()" title="New Terminal">+</button>
+                  <button class="term-hbtn" onclick="toggleTermSize()" title="Maximize" id="termMaxBtn">⤢</button>
+                </div>
+              </div>
+              <div class="term-body" id="termBody"></div>
+              <div class="term-input-row">
+                <span class="term-input-prompt">creator@gitx ~/apps/web $</span>
+                <input class="term-input" id="termInput" placeholder="type a command..." autocomplete="off" onkeydown="handleTermInput(event)">
+              </div>
+            </div>
+          </div>
+
+          <!-- AI ASSISTANT PANEL -->
+          <div class="ai-panel" id="aiPanel">
+            <div class="ai-resize-handle" id="aiResizeHandle"></div>
+
+            <div class="ai-panel-header">
+              <div class="aph-glow"></div>
+              <div class="aph-title">✦ GitX AI</div>
+              <div class="aph-model" onclick="cycleModel()">GPT-4o</div>
+              <button class="aph-close" onclick="toggleAIPanel()">×</button>
+            </div>
+
+            <!-- capability chips -->
+            <div class="ai-caps">
+              <div class="ai-cap ai-cap-debug" onclick="aiQuickAction('debug')">🐛 Debug</div>
+              <div class="ai-cap ai-cap-suggest" onclick="aiQuickAction('suggest')">✦ Suggest</div>
+              <div class="ai-cap ai-cap-refactor" onclick="aiQuickAction('refactor')">⟳ Refactor</div>
+              <div class="ai-cap ai-cap-explain" onclick="aiQuickAction('explain')">📖 Explain</div>
+              <div class="ai-cap ai-cap-test" onclick="aiQuickAction('test')">⚗ Tests</div>
+            </div>
+
+            <!-- messages -->
+            <div class="ai-msgs" id="aiMsgs">
+              <div class="ai-msg ai">
+                <div class="ai-avatar av-ai">✦</div>
+                <div>
+                  <div class="ai-bubble">
+                    I'm your <strong>GitX AI</strong> — more powerful than Cursor or Copilot. I can see your full codebase, understand context across files, debug in real-time, and apply changes directly to your editor.<br><br>
+                    Click any capability above, or just ask me anything about <code>App.tsx</code>.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- input -->
+            <div class="ai-input-wrap">
+              <div class="ai-input-box">
+                <div class="ai-input-context">
+                  <div class="ctx-chip">⚛ App.tsx</div>
+                  <div class="ctx-chip">📦 package.json</div>
+                  <div class="ctx-chip ctx-chip-add">+ Add context</div>
+                </div>
+                <textarea class="ai-textarea" id="aiPanelInput"
+                  placeholder="Ask anything... debug, refactor, explain, generate tests, review code (⌘↵ to send)"
+                  onkeydown="handleAIPanelInput(event)" rows="3"></textarea>
+                <div class="ai-input-footer">
+                  <span class="ai-footer-hint">⌘↵ send · ⇧↵ newline · ⌘K inline edit</span>
+                  <button class="ai-send" onclick="sendAIMessage()">Send ↵</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════ PAGE 3: GitX Pipeline ════ -->
+      <div class="page" id="p2">
+        <div class="pipe-layout">
+          <div class="pipe-side">
+            <div class="ps-header">
+              <div class="ps-title"><div class="ps-title-dot"></div>GitX Pipeline</div>
+              <button class="create-pipe-btn" onclick="openModal()">⚡ New Pipeline</button>
+            </div>
+            <div class="ps-nav">
+              <div class="ps-section-label">Pipelines</div>
+              <div class="ps-item on" onclick="loadPipeline('main')">
+                ⚡ gitx-main-deploy <div class="ps-status s-pass"></div>
+              </div>
+              <div class="ps-item" onclick="loadPipeline('staging')">
+                ⚡ staging-deploy <div class="ps-status s-run"></div>
+              </div>
+              <div class="ps-item" onclick="loadPipeline('test')">
+                ⚡ run-unit-tests <div class="ps-status s-pass"></div>
+              </div>
+              <div class="ps-item" onclick="loadPipeline('security')">
+                ⚡ security-scan <div class="ps-status s-fail"></div>
+              </div>
+              <div class="ps-item" onclick="loadPipeline('release')">
+                ⚡ release-v2.0 <div class="ps-status s-wait"></div>
+              </div>
+              <div class="ps-section-label">Integrations</div>
+              <div class="ps-item">🐋 Docker Registry</div>
+              <div class="ps-item">⎈ Kubernetes / OKD</div>
+              <div class="ps-item">🔄 ArgoCD GitOps</div>
+              <div class="ps-item">📊 Prometheus</div>
+              <div class="ps-item">📈 Grafana</div>
+              <div class="ps-item">🔒 Trivy Security</div>
+              <div class="ps-item">📦 SonarQube</div>
+            </div>
+            <div class="ps-footer">
+              <div class="infra-badge" title="Connected to EC2">☁ AWS EC2 · Connected</div>
+              <div class="infra-badge" title="OpenShift cluster">⎈ OpenShift · 3 nodes</div>
+            </div>
+          </div>
+
+          <div class="pipe-main">
+            <div class="pipe-topbar">
+              <div class="pipe-title" id="pipeTitle">⚡ gitx-main-deploy</div>
+              <div class="pipe-branch">⑂ main</div>
+              <div class="pipe-spacer"></div>
+              <button class="pipe-btn" onclick="toast('Aborted','Pipeline run cancelled')">⏹ Abort</button>
+              <button class="pipe-btn" onclick="toast('Replaying...','Replaying last run')">↺ Replay</button>
+              <button class="pipe-btn run" onclick="triggerRun()">▶ Run Pipeline</button>
+            </div>
+
+            <div class="pipe-content">
+
+              <!-- Metrics -->
+              <div class="metrics-row">
+                <div class="metric-card">
+                  <div class="mc-label">Success Rate</div>
+                  <div class="mc-val" id="mSuccess">94%</div>
+                  <div class="mc-sub mc-up">↑ 2% from last week</div>
+                </div>
+                <div class="metric-card">
+                  <div class="mc-label">Avg Build Time</div>
+                  <div class="mc-val" id="mBuild">3m 42s</div>
+                  <div class="mc-sub mc-up">↓ 18s faster</div>
+                </div>
+                <div class="metric-card">
+                  <div class="mc-label">Deployments</div>
+                  <div class="mc-val" id="mDeploys">47</div>
+                  <div class="mc-sub" style="color:var(--text2)">This month</div>
+                </div>
+                <div class="metric-card">
+                  <div class="mc-label">Coverage</div>
+                  <div class="mc-val" id="mCoverage">87%</div>
+                  <div class="mc-sub mc-up">↑ 3% improved</div>
+                </div>
+              </div>
+
+              <!-- Pipeline Visualizer -->
+              <div class="pipeline-viz">
+                <div class="pviz-title">Current Pipeline · gitx-main-deploy · Run #48</div>
+                <div class="pviz-stages" id="pvizStages"></div>
+              </div>
+
+              <!-- Build Runs -->
+              <div class="runs-card">
+                <div class="rc-head">
+                  <strong>Build Runs</strong>
+                  <span>Last 10 runs</span>
+                </div>
+                <div id="runsList"></div>
+              </div>
+
+              <!-- Live Logs -->
+              <div class="runs-card">
+                <div class="rc-head"><strong>Live Logs</strong><span style="color:var(--green)">● live</span></div>
+                <div class="log-panel" id="logPanel"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /track -->
+  </div><!-- /page-wrap -->
+
+  <!-- PAGE DOTS -->
+  <div class="pg-dots">
+    <div class="pgd on" data-p="0" onclick="go(0)"></div>
+    <div class="pgd" data-p="1" onclick="go(1)"></div>
+    <div class="pgd" data-p="2" onclick="go(2)"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- WATERMARK -->
+<div class="wm">⬡ <span>GitX</span> · Open Source</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl">
+  <div class="toast-title" id="toastTitle"></div>
+  <div class="toast-body" id="toastBody"></div>
+</div>
+
+<!-- CREATE PIPELINE MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <span>⚡</span>
+      <div class="modal-title" id="modalTitle">Create New Pipeline</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Pipeline Name</label>
+        <input class="form-input" type="text" placeholder="my-pipeline" id="pipeName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Repository</label>
+        <select class="form-select">
+          <option>creator/gitx</option>
+          <option>creator/neural-core</option>
+          <option>creator/devx-engine</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trigger Branch</label>
+        <input class="form-input" type="text" placeholder="main" value="main">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trigger On</label>
+        <select class="form-select">
+          <option>Push</option>
+          <option>Pull Request</option>
+          <option>Tag</option>
+          <option>Schedule</option>
+          <option>Manual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Container Registry</label>
+        <select class="form-select">
+          <option>Docker Hub</option>
+          <option>AWS ECR</option>
+          <option>GitHub GHCR</option>
+          <option>GitLab Registry</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deploy Target</label>
+        <select class="form-select">
+          <option>OpenShift / Kubernetes</option>
+          <option>AWS EC2</option>
+          <option>ECS Fargate</option>
+          <option>ArgoCD GitOps</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Environment Variables</label>
+        <textarea class="form-textarea" placeholder="KUBECONFIG=/etc/kubeconfig&#10;AWS_REGION=us-east-1&#10;IMAGE_TAG=$GIT_COMMIT"></textarea>
+      </div>
+      <div class="form-group full steps-builder">
+        <label class="form-label">Pipeline Steps</label>
+        <div class="steps-list" id="stepsList">
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Checkout Code</span><span class="step-type">git</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Install Dependencies</span><span class="step-type">npm</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Run Tests + Coverage</span><span class="step-type">test</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Security Scan (Trivy)</span><span class="step-type">security</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Build Docker Image</span><span class="step-type">docker</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Push to Registry</span><span class="step-type">registry</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Deploy to OpenShift</span><span class="step-type">deploy</span><button class="step-del" onclick="delStep(this)">×</button></div>
+          <div class="step-item"><span class="step-drag">⠿</span><span class="step-name">Health Check</span><span class="step-type">verify</span><button class="step-del" onclick="delStep(this)">×</button></div>
+        </div>
+        <button class="add-step-btn" onclick="addStep()">+ Add Step</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="mf-cancel" onclick="closeModal()">Cancel</button>
+      <button class="mf-create" onclick="createPipeline()">⚡ Create Pipeline</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// accessibility improvements
+// respect prefers-reduced-motion
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (prefersReduced.matches) {
+  document.body.classList.add('reduced-motion');
+}
+
+// announce page changes for screen readers
+function announce(message) {
+  let live = document.getElementById('sr-live');
+  if (!live) {
+    live = document.createElement('div');
+    live.id = 'sr-live';
+    live.setAttribute('aria-live','polite');
+    live.setAttribute('role','status');
+    live.style.position='absolute'; live.style.width='1px'; live.style.height='1px';
+    live.style.margin='-1px'; live.style.clip='rect(0 0 0 0)';
+    document.body.appendChild(live);
+  }
+  live.textContent = message;
+}
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+let curPage = 0;
+let inApp = false;
+let layout = 1;
+let toastTimer = null;
+let wheelAccum = 0;
+let wheelLocked = false;
+let wheelTimer = null;
+let touchStartX = null, touchStartY = null;
+
+/* Finger count tracking for 4-finger detection */
+let touchCount = 0;
+let touchPeakCount = 0;
+
+/* ════════════════════════════════
+   BOOT
+════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildEditor();
+  buildPipelineViz();
+  buildRunsList();
+  buildLogs();
+  // swipe gestures removed per user request; navigation now via arrows
+  // setupWheelGesture();
+  // setupTouchGesture();
+});
+
+/* ════════════════════════════════
+   ENTER / EXIT
+════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.altKey && (e.key === 'i' || e.key === 'I')) { e.preventDefault(); enterApp(); }
+  if (e.altKey && (e.key === 'e' || e.key === 'E')) { e.preventDefault(); exitApp(); }
+  if (!inApp) return;
+  if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); go(Math.min(curPage+1,2)); }
+  if (e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); go(Math.max(curPage-1,0)); }
+  if (e.altKey && e.key === '1') go(0);
+  if (e.altKey && e.key === '2') go(1);
+  if (e.altKey && e.key === '3') go(2);
+  
+  // Add keyboard hints display
+  if (e.key === '?' && e.shiftKey) {
+    showKeyboardHelp();
+  }
+});
+
+function showKeyboardHelp() {
+  const help = `
+    Keyboard Navigation:
+    • Alt+I: Enter App
+    • Alt+E: Exit App
+    • Alt+1/2/3: Switch to specific page
+    • Alt+← / Alt+→: Prev/Next page
+    • ? + Shift: Show this help
+    
+    Navigation:
+    • Use the left/right arrows or Alt+1/Alt+2/Alt+3
+  `;
+  alert(help);
+}
+
+function enterApp() {
+  if (inApp) return;
+  inApp = true;
+  document.getElementById('splash').classList.add('exit');
+  document.getElementById('app').classList.add('on');
+  toast('Welcome to GitX! 🚀', 'Use arrows or Alt+← → to navigate. Press Alt+I to return to splash.');
+}
+function exitApp() {
+  if (!inApp) return;
+  inApp = false;
+  document.getElementById('app').classList.remove('on');
+  setTimeout(() => document.getElementById('splash').classList.remove('exit'), 200);
+}
+
+/* ════════════════════════════════
+   PAGE NAVIGATION
+════════════════════════════════ */
+function go(n) {
+  curPage = Math.max(0, Math.min(2, n));
+  const track = document.getElementById('track');
+  // smooth slide transition using CSS transitions instead of keyframes
+  track.style.transition = 'transform 0.5s cubic-bezier(.77,0,.18,1), opacity 0.2s ease-out';
+  track.style.opacity = '0.95';
+  track.style.transform = `translateX(${-curPage * 33.333}%)`;
+  requestAnimationFrame(() => {
+    track.style.opacity = '1';
+  });
+  
+  document.querySelectorAll('.pnav').forEach((b,i) => b.classList.toggle('active', i===curPage));
+  document.querySelectorAll('.pgd').forEach((d,i) => d.classList.toggle('on', i===curPage));
+  
+  // Show page indicator toast + screen reader announcement
+  const pageNames = ['Repository', 'Code Editor', 'Pipeline'];
+  toast(`Page ${curPage + 1}`, pageNames[curPage]);
+  const srNames = ['Repository view', 'Code editor', 'Pipeline dashboard'];
+  announce('Navigated to ' + srNames[curPage]);
+}
+
+/* ════════════════════════════════
+   LAYOUT
+════════════════════════════════ */
+function setLayout(n) {
+  layout = n;
+  document.querySelectorAll('.ltog').forEach((b,i) => {
+    b.classList.toggle('active', i+1===n);
+    if (i+1===n) b.style.animation = 'layoutToggleActive 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  });
+  
+  const wrap = document.getElementById('page-wrap');
+  wrap.className = n > 1 ? `split${n}` : '';
+  const dots = document.querySelector('.pg-dots');
+  
+  if (n === 1) {
+    dots.style.display = 'flex';
+    dots.style.animation = 'dotsReveal 0.3s ease';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('sv'));
+    go(curPage);
+    toast('Single Layout', 'One page at a time');
+  } else if (n === 2) {
+    dots.style.display = 'none';
+    dots.style.animation = 'dotsFade 0.3s ease';
+    document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('sv', i<=1));
+    toast('Split View 2', 'Repository & Code side by side');
+  } else {
+    dots.style.display = 'none';
+    dots.style.animation = 'dotsFade 0.3s ease';
+    toast('All Pages', 'All three pages visible');
+  }
+}
+
+/* Layout toggle animations */
+const layoutStyleEl = document.createElement('style');
+layoutStyleEl.textContent = `
+  @keyframes layoutToggleActive {
+    0% { transform: scale(0.95); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes dotsReveal {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes dotsFade {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+`;
+document.head.appendChild(layoutStyleEl);
+
+/* ════════════════════════════════
+   4-FINGER TRACKPAD GESTURE
+════════════════════════════════ */
+function setupWheelGesture() {
+  // gesture handling removed; navigation via arrow buttons only
+}
+
+
+/* Touch (mobile / stylus) */
+function setupTouchGesture() {
+  const wrap = document.getElementById('page-wrap');
+  wrap.addEventListener('touchstart', e => {
+    touchPeakCount = Math.max(touchPeakCount, e.touches.length);
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  wrap.addEventListener('touchmove', e => {
+    touchPeakCount = Math.max(touchPeakCount, e.touches.length);
+  }, {passive:true});
+  wrap.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    // require exactly 4 fingers for navigation on all OS
+    if (touchPeakCount === 4 && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      go(dx < 0 ? curPage+1 : curPage-1);
+      toast('Navigated', `Swipe with 4 fingers · Current page ${curPage + 1}`);
+    }
+    touchStartX = null; touchStartY = null; touchPeakCount = 0;
+  }, {passive:true});
+}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function toast(title, body) {
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastBody').textContent = body;
+  const el = document.getElementById('toastEl');
+  
+  // Reset animation
+  el.style.animation = 'none';
+  el.offsetHeight; // Force reflow
+  
+  // Apply with enhanced animation
+  el.classList.add('show');
+  el.style.animation = 'toastBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    el.style.animation = 'toastExit 0.35s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+  }, 3200);
+}
+
+/* Enhanced toast animations */
+const toastStyleEl = document.createElement('style');
+toastStyleEl.textContent = `
+  @keyframes toastBounce {
+    0% { transform: translateX(calc(100% + 20px)) translateY(0); opacity: 0; }
+    70% { transform: translateX(-8px); }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes toastExit {
+    from { transform: translateX(0) translateY(0); opacity: 1; }
+    to { transform: translateX(calc(100% + 20px)) translateY(8px); opacity: 0; }
+  }
+`;
+document.head.appendChild(toastStyleEl);
+
+/* ════════════════════════════════
+   CODE EDITOR
+════════════════════════════════ */
+const CODE = `<span class="kw">import</span> React, { useState, useEffect, useRef } <span class="kw">from</span> <span class="str">'react'</span>;
+<span class="kw">import</span> { <span class="cls">Pipeline</span>, <span class="cls">GitView</span>, <span class="cls">CodeEditor</span> } <span class="kw">from</span> <span class="str">'./pages'</span>;
+<span class="kw">import</span> { useSwipeGesture } <span class="kw">from</span> <span class="str">'@gitx/core'</span>;
+<span class="kw">import</span> type { <span class="cls">PageId</span>, <span class="cls">Layout</span> } <span class="kw">from</span> <span class="str">'@gitx/types'</span>;
+
+<span class="cm">/**
+ * GitX — Platform Entry Point
+ * Deploy: AWS EC2 → Jenkins → Docker → OpenShift
+ * Monitor: Prometheus + Grafana
+ */</span>
+<span class="kw">export default function</span> <span class="fn">App</span>() {
+  <span class="kw">const</span> [page, setPage] = useState&lt;<span class="cls">PageId</span>&gt;(<span class="num">0</span>);
+  <span class="kw">const</span> [layout, setLayout] = useState&lt;<span class="cls">Layout</span>&gt;(<span class="str">'single'</span>);
+
+  <span class="cm">// 4-finger trackpad swipe navigation</span>
+  <span class="fn">useSwipeGesture</span>({
+    fingers: <span class="num">4</span>,
+    threshold: <span class="num">90</span>,
+    onLeft:  () =&gt; setPage(p =&gt; Math.min(p + <span class="num">1</span>, <span class="num">2</span>)),
+    onRight: () =&gt; setPage(p =&gt; Math.max(p - <span class="num">1</span>, <span class="num">0</span>)),
+  });
+
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span> <span class="attr">className</span>=<span class="str">"gitx-app"</span>&gt;
+      &lt;<span class="tag">TopBar</span> <span class="attr">page</span>={page} <span class="attr">layout</span>={layout}
+               <span class="attr">onNavigate</span>={setPage} <span class="attr">onLayout</span>={setLayout} /&gt;
+      &lt;<span class="tag">PageTrack</span> <span class="attr">current</span>={page} <span class="attr">layout</span>={layout}&gt;
+        &lt;<span class="tag">GitView</span> /&gt;
+        &lt;<span class="tag">CodeEditor</span> /&gt;
+        &lt;<span class="tag">Pipeline</span> /&gt;
+      &lt;/<span class="tag">PageTrack</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}`;
+
+function buildEditor() {
+  const ed = document.getElementById('codeEd');
+  const ln = document.getElementById('lineNums');
+  
+  // Add smooth typewriter-like reveal
+  ed.innerHTML = CODE;
+  ed.style.animation = 'codeReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+  
+  const lines = CODE.split('\n').length;
+  ln.innerHTML = Array.from({length:lines},(_,i)=>`<div style="animation: lineNumberReveal 0.4s ease-out forwards; animation-delay: ${i * 0.02}s">${i+1}</div>`).join('');
+  
+  ed.addEventListener('input', () => {
+    const l = ed.innerText.split('\n').length;
+    ln.innerHTML = Array.from({length:l},(_,i)=>`<div>${i+1}</div>`).join('');
+  });
+}
+
+/* Add animation styles */
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  @keyframes codeReveal {
+    from { opacity: 0; filter: blur(4px); }
+    to { opacity: 1; filter: blur(0); }
+  }
+  @keyframes lineNumberReveal {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+`;
+document.head.appendChild(styleEl);
+
+/* ════════════════════════════════
+   PIPELINE VISUALIZER
+════════════════════════════════ */
+const STAGES = [
+  { icon:'⬇', label:'Checkout', time:'2s', state:'done' },
+  { icon:'📦', label:'Install', time:'42s', state:'done' },
+  { icon:'✅', label:'Test', time:'1m18s', state:'done' },
+  { icon:'🔒', label:'Security', time:'28s', state:'done' },
+  { icon:'🐋', label:'Docker Build', time:'55s', state:'running' },
+  { icon:'⬆', label:'Push Image', time:'—', state:'pending' },
+  { icon:'⎈', label:'Deploy', time:'—', state:'pending' },
+  { icon:'📊', label:'Health Check', time:'—', state:'pending' },
+];
+
+function buildPipelineViz() {
+  const wrap = document.getElementById('pvizStages');
+  let html = '';
+  STAGES.forEach((s,i) => {
+    html += `<div class="pviz-stage">
+      <div class="stage-node ${s.state}" title="${s.label}">${s.icon}</div>
+      <div class="stage-label">${s.label}</div>
+      <div class="stage-time">${s.time}</div>
+    </div>`;
+    if (i < STAGES.length-1) {
+      const connState = s.state === 'done' ? 'done' : (s.state === 'running' ? 'run' : '');
+      html += `<div class="pviz-connector ${connState}"></div>`;
+    }
+  });
+  wrap.innerHTML = html;
+}
+
+/* ════════════════════════════════
+   BUILD RUNS
+════════════════════════════════ */
+const RUNS = [
+  { num:'#48', icon:'🟡', msg:'feat: add 4-finger swipe navigation', branch:'main', dur:'running', ago:'now' },
+  { num:'#47', icon:'✅', msg:'fix: pipeline page nav syntax error resolved', branch:'main', dur:'3m 38s', ago:'2h ago' },
+  { num:'#46', icon:'✅', msg:'feat: GitX Pipeline with Jenkins-grade features', branch:'main', dur:'4m 12s', ago:'5h ago' },
+  { num:'#45', icon:'❌', msg:'security: trivy scan found critical vulnerability', branch:'feature/auth', dur:'1m 14s', ago:'8h ago' },
+  { num:'#44', icon:'✅', msg:'chore: update helm charts for openshift 4.14', branch:'main', dur:'3m 55s', ago:'1d ago' },
+  { num:'#43', icon:'✅', msg:'feat: prometheus metrics endpoint /metrics', branch:'main', dur:'3m 22s', ago:'1d ago' },
+  { num:'#42', icon:'✅', msg:'infra: argocd application manifest', branch:'main', dur:'2m 48s', ago:'2d ago' },
+  { num:'#41', icon:'✅', msg:'feat: multi-stage dockerfile optimized', branch:'main', dur:'4m 01s', ago:'2d ago' },
+];
+
+function buildRunsList() {
+  const el = document.getElementById('runsList');
+  el.innerHTML = RUNS.map(r => `
+    <div class="run-row" onclick="toast('Run ${r.num}','${r.msg}')">
+      <span class="run-status-icon">${r.icon}</span>
+      <span class="run-num">${r.num}</span>
+      <span class="run-msg">${r.msg}</span>
+      <span class="run-branch">${r.branch}</span>
+      <span class="run-dur">${r.dur}</span>
+      <span class="run-ago">${r.ago}</span>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════
+   LIVE LOGS
+════════════════════════════════ */
+const LOGS_INITIAL = [
+  {t:'12:04:01', cls:'log-info', msg:'Pipeline #48 triggered by push to main'},
+  {t:'12:04:03', cls:'log-cmd',  msg:'[Checkout] git clone --depth=1 https://github.com/creator/gitx'},
+  {t:'12:04:05', cls:'log-success', msg:'[Checkout] ✔ HEAD is now at a4f8e2c'},
+  {t:'12:04:06', cls:'log-cmd',  msg:'[Install] npm ci --prefer-offline'},
+  {t:'12:04:48', cls:'log-success', msg:'[Install] ✔ 847 packages installed in 42s'},
+  {t:'12:05:00', cls:'log-cmd',  msg:'[Test] jest --coverage --ci --maxWorkers=4'},
+  {t:'12:06:18', cls:'log-success', msg:'[Test] ✔ 312 tests passed · Coverage: 87%'},
+  {t:'12:06:19', cls:'log-cmd',  msg:'[Security] trivy image --exit-code 0 --severity HIGH,CRITICAL'},
+  {t:'12:06:47', cls:'log-success', msg:'[Security] ✔ No critical vulnerabilities found'},
+  {t:'12:06:48', cls:'log-cmd',  msg:'[Docker] docker build -t creator/gitx:a4f8e2c .'},
+];
+const LOGS_STREAM = [
+  {t:'12:07:12', cls:'log-info',  msg:'[Docker] Step 1/12 : FROM node:20-alpine'},
+  {t:'12:07:15', cls:'log-info',  msg:'[Docker] Step 4/12 : COPY package*.json ./'},
+  {t:'12:07:22', cls:'log-info',  msg:'[Docker] Step 7/12 : RUN npm ci --only=production'},
+  {t:'12:07:38', cls:'log-warn',  msg:'[Docker] Step 9/12 : RUN npm run build — warning: bundle size 2.1MB'},
+  {t:'12:07:43', cls:'log-success',msg:'[Docker] ✔ Built creator/gitx:a4f8e2c in 55s · 142MB'},
+];
+
+function buildLogs() {
+  const panel = document.getElementById('logPanel');
+  panel.innerHTML = LOGS_INITIAL.map(l =>
+    `<div class="log-line"><span class="log-time">${l.t}</span><span class="${l.cls}">${l.msg}</span></div>`
+  ).join('');
+  panel.scrollTop = panel.scrollHeight;
+
+  let i = 0;
+  const stream = () => {
+    if (i >= LOGS_STREAM.length) return;
+    const l = LOGS_STREAM[i++];
+    panel.innerHTML += `<div class="log-line"><span class="log-time">${l.t}</span><span class="${l.cls}">${l.msg}</span></div>`;
+    panel.scrollTop = panel.scrollHeight;
+    setTimeout(stream, 1800);
+  };
+  setTimeout(stream, 2500);
+}
+
+/* ════════════════════════════════
+   PIPELINE ACTIONS
+════════════════════════════════ */
+function triggerRun() {
+  toast('Pipeline Triggered', 'Run #49 queued on main branch');
+  // Animate first pending stage to running
+  const nodes = document.querySelectorAll('.stage-node');
+  const connectors = document.querySelectorAll('.pviz-connector');
+  let runIdx = -1;
+  nodes.forEach((n,i) => { if(n.classList.contains('running')) runIdx = i; });
+  if (runIdx >= 0 && runIdx < nodes.length-1) {
+    nodes[runIdx].classList.replace('running','done');
+    if (connectors[runIdx]) connectors[runIdx].className = 'pviz-connector done';
+    nodes[runIdx+1].classList.replace('pending','running');
+  }
+}
+
+function loadPipeline(name) {
+  document.querySelectorAll('.ps-item').forEach(i => i.classList.remove('on'));
+  event.currentTarget.classList.add('on');
+  const names = {
+    main: 'gitx-main-deploy', staging: 'staging-deploy',
+    test: 'run-unit-tests', security: 'security-scan', release: 'release-v2.0'
+  };
+  document.getElementById('pipeTitle').textContent = `⚡ ${names[name] || name}`;
+  toast(`Loaded: ${names[name]}`, 'Pipeline details updated');
+}
+
+/* ════════════════════════════════
+   PIPELINE MODAL
+════════════════════════════════ */
+function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target === e.currentTarget) closeModal(); }
+function delStep(btn) { btn.closest('.step-item').remove(); }
+function addStep() {
+  const steps = ['Run Linter', 'Generate SBOM', 'Notify Slack', 'Update ArgoCD', 'Rollback Gate', 'Integration Tests', 'Performance Benchmark', 'Smoke Tests'];
+  const types = ['lint', 'sbom', 'notify', 'gitops', 'gate', 'test', 'perf', 'verify'];
+  const idx = Math.floor(Math.random() * steps.length);
+  const li = document.createElement('div');
+  li.className = 'step-item';
+  li.innerHTML = `<span class="step-drag">⠿</span><span class="step-name">${steps[idx]}</span><span class="step-type">${types[idx]}</span><button class="step-del" onclick="delStep(this)">×</button>`;
+  document.getElementById('stepsList').appendChild(li);
+}
+function createPipeline() {
+  const name = document.getElementById('pipeName').value || 'new-pipeline';
+  closeModal();
+  const nav = document.querySelector('.ps-nav');
+  const item = document.createElement('div');
+  item.className = 'ps-item';
+  item.innerHTML = `⚡ ${name} <div class="ps-status s-wait"></div>`;
+  item.onclick = () => { document.querySelectorAll('.ps-item').forEach(i=>i.classList.remove('on')); item.classList.add('on'); };
+  nav.insertBefore(item, nav.children[1]);
+  toast(`Pipeline Created`, `"${name}" added · Click Run to start`);
+}
+
+/* ════════════════════════════════
+   AI PANEL
+════════════════════════════════ */
+let aiPanelOpen = true;
+let aiThinking = false;
+let aiModel = 'GPT-4o';
+const AI_MODELS = ['GPT-4o', 'o3', 'o4-mini', 'GPT-4o mini'];
+let aiModelIdx = 0;
+
+function toggleAIPanel() {
+  const panel = document.getElementById('aiPanel');
+  aiPanelOpen = !aiPanelOpen;
+  
+  // Smooth animation
+  panel.style.animation = aiPanelOpen 
+    ? 'aiPanelSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+    : 'aiPanelSlideOut 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+  
+  panel.classList.toggle('collapsed', !aiPanelOpen);
+  if (aiPanelOpen) {
+    setTimeout(() => document.getElementById('aiPanelInput').focus(), 350);
+    toast('AI Panel', 'Ready to assist · Type your question');
+  } else {
+    toast('AI Panel Closed', 'Click ✦ to open again');
+  }
+}
+
+/* Animation styles for AI panel */
+const aiStyleEl = document.createElement('style');
+aiStyleEl.textContent = `
+  @keyframes aiPanelSlideIn {
+    from { width: 0; opacity: 0; }
+    to { width: 340px; opacity: 1; }
+  }
+  @keyframes aiPanelSlideOut {
+    from { width: 340px; opacity: 1; }
+    to { width: 0; opacity: 0; }
+  }
+`;
+document.head.appendChild(aiStyleEl);
+
+function cycleModel() {
+  aiModelIdx = (aiModelIdx + 1) % AI_MODELS.length;
+  aiModel = AI_MODELS[aiModelIdx];
+  document.querySelector('.aph-model').textContent = aiModel;
+  toast('Model switched', `Now using ${aiModel}`);
+}
+
+function handleAIPanelInput(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); sendAIMessage(); }
+}
+
+function sendAIMessage() {
+  if (aiThinking) return;
+  const inp = document.getElementById('aiPanelInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  appendAIMsg('user', text);
+  showAIThinking();
+  const delay = 900 + Math.random() * 1400;
+  setTimeout(() => { hideAIThinking(); respondToAI(text); }, delay);
+}
+
+function aiQuickAction(type) {
+  if (!aiPanelOpen) { aiPanelOpen = false; toggleAIPanel(); }
+  const prompts = {
+    debug:    'Analyze App.tsx for bugs, runtime errors, and potential issues. Show a detailed report.',
+    suggest:  'Review App.tsx and suggest improvements for performance, readability, and best practices.',
+    refactor: 'Refactor the useSwipeGesture hook in App.tsx to be more composable and type-safe.',
+    explain:  'Explain what App.tsx does, how the page navigation works, and the architecture.',
+    test:     'Generate comprehensive Jest unit tests for the App component including edge cases.',
+  };
+  document.getElementById('aiPanelInput').value = prompts[type] || '';
+  setTimeout(() => sendAIMessage(), 100);
+}
+
+function appendAIMsg(role, content, type='text') {
+  const msgs = document.getElementById('aiMsgs');
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  const avatar = role === 'ai'
+    ? '<div class="ai-avatar av-ai">✦</div>'
+    : '<div class="ai-avatar av-user">U</div>';
+  let bubble = '';
+  if (type === 'text') {
+    bubble = `<div class="ai-bubble">${content}</div>`;
+  } else if (type === 'diff') {
+    bubble = content;
+  }
+  div.innerHTML = role === 'ai'
+    ? `${avatar}<div>${bubble}</div>`
+    : `${avatar}<div>${bubble}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+}
+
+let thinkingEl = null;
+function showAIThinking() {
+  aiThinking = true;
+  document.getElementById('aiStatusItem').textContent = '✦ Thinking...';
+  document.getElementById('aiStatusItem').style.color = 'var(--amber)';
+  const msgs = document.getElementById('aiMsgs');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai'; div.id = 'aiThinkEl';
+  div.innerHTML = `<div class="ai-avatar av-ai">✦</div><div><div class="ai-thinking-bubble"><div class="think-dots"><div class="think-dot"></div><div class="think-dot"></div><div class="think-dot"></div></div>Analyzing codebase...</div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+}
+function hideAIThinking() {
+  aiThinking = false;
+  document.getElementById('aiStatusItem').textContent = '✦ AI Ready';
+  document.getElementById('aiStatusItem').style.color = 'var(--violet)';
+  const el = document.getElementById('aiThinkEl');
+  if (el) el.remove();
+}
+
+const AI_RESPONSES = [
+  {
+    type: 'diff',
+    build: () => {
+      return `<div class="ai-bubble">I found a potential issue and refactored <code>useSwipeGesture</code> for better type safety. Here's the diff:</div>
+<div class="ai-diff">
+  <div class="ai-diff-header">
+    App.tsx — lines 11–18
+    <button class="diff-btn-accept" onclick="acceptDiff(this)">✓ Accept</button>
+    <button class="diff-btn-reject" onclick="rejectDiff(this)">✕ Reject</button>
+  </div>
+  <div class="ai-diff-line dl-del"><span class="dl-sym">−</span>  useSwipeGesture({</div>
+  <div class="ai-diff-line dl-del"><span class="dl-sym">−</span>    fingers: 4,</div>
+  <div class="ai-diff-line dl-del"><span class="dl-sym">−</span>    threshold: 90,</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>  useSwipeGesture&lt;PageId&gt;({</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>    fingers: 4 as const,</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>    threshold: 90,</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>    onSwipeStart: () => setIsTransitioning(true),</div>
+  <div class="ai-diff-line dl-ctx"><span class="dl-sym"> </span>    onLeft:  () => setPage(p => Math.min(p + 1, 2)),</div>
+  <div class="ai-diff-line dl-ctx"><span class="dl-sym"> </span>    onRight: () => setPage(p => Math.max(p - 1, 0)),</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>    onSwipeEnd: () => setIsTransitioning(false),</div>
+  <div class="ai-diff-line dl-del"><span class="dl-sym">−</span>  });</div>
+  <div class="ai-diff-line dl-add"><span class="dl-sym">+</span>  }, [setPage]);</div>
+</div>
+<div class="ai-bubble" style="margin-top:6px">Added generic type <code>PageId</code>, <code>as const</code> for finger count, transition callbacks, and memoized dep array. Accept to apply directly.</div>`;
+    }
+  },
+  {
+    type: 'code',
+    build: () => `<div class="ai-bubble">Here are comprehensive tests for <code>App.tsx</code>:</div>
+<div class="ai-code-block">
+  <div class="ai-cb-header">
+    <span class="ai-cb-lang">TypeScript · App.test.tsx</span>
+    <button class="ai-cb-apply" onclick="applyCode(this)">⬇ Apply to file</button>
+    <button class="ai-cb-copy" onclick="copyAICode(this)">Copy</button>
+  </div>
+  <div class="ai-cb-body">describe(<span style="color:#a5d6ff">'App'</span>, () => {
+  it(<span style="color:#a5d6ff">'renders all three pages'</span>, () => {
+    render(&lt;App /&gt;);
+    expect(screen.getByText(<span style="color:#a5d6ff">'GitX Repository'</span>)).toBeInTheDocument();
+  });
+
+  it(<span style="color:#a5d6ff">'navigates on swipe left'</span>, async () => {
+    const { container } = render(&lt;App /&gt;);
+    fireEvent.wheel(container, { deltaX: <span style="color:#79c0ff">100</span>, deltaMode: <span style="color:#79c0ff">0</span> });
+    await waitFor(() =&gt;
+      expect(screen.getByText(<span style="color:#a5d6ff">'GitX Code'</span>)).toBeVisible()
+    );
+  });
+
+  it(<span style="color:#a5d6ff">'clamps page to 0–2 range'</span>, () => {
+    <span style="color:#ff7b72">const</span> { rerender } = render(&lt;App initialPage={<span style="color:#79c0ff">0</span>} /&gt;);
+    act(() =&gt; fireGesture(<span style="color:#a5d6ff">'right'</span>));
+    expect(getActivePage()).toBe(<span style="color:#79c0ff">0</span>);
+  });
+});</div>
+</div>
+<div class="ai-bubble" style="margin-top:4px">Generated 12 tests covering navigation, layout modes, keyboard shortcuts, and edge cases. Click <strong>Apply to file</strong> to create <code>App.test.tsx</code>.</div>`
+  },
+  {
+    type: 'text',
+    build: () => `<strong>App.tsx Analysis</strong><br><br>
+<strong>Architecture:</strong> Three-page SPA with hardware-accelerated CSS transforms for navigation. Uses wheel event accumulation to detect 4-finger trackpad swipes.<br><br>
+<strong>✅ Good practices:</strong> CSS <code>will-change:transform</code>, passive event listeners, cubic-bezier easing.<br><br>
+<strong>⚠ Suggestions:</strong><br>
+1. Add <code>useCallback</code> to swipe handler to prevent re-renders<br>
+2. Use <code>React.lazy()</code> for Pipeline page — it's heavy<br>
+3. Add <code>prefers-reduced-motion</code> media query check<br><br>
+Want me to apply any of these automatically?`
+  },
+  {
+    type: 'text',
+    build: () => `<strong>🐛 Debug Report — App.tsx</strong><br><br>
+<strong>Issue found on line 18:</strong> <code>wheelLocked</code> is never reset after a failed swipe, which can cause the gesture to stop responding after rapid swipes.<br><br>
+<strong>Root cause:</strong> <code>wheelTimer</code> timeout (350ms) doesn't reset <code>wheelLocked</code> when <code>Math.abs(wheelAccum) &lt; 90</code> at timeout.<br><br>
+<strong>Fix:</strong><br><code>wheelTimer = setTimeout(() =&gt; {<br>&nbsp;&nbsp;wheelAccum = 0;<br>&nbsp;&nbsp;wheelLocked = false; // ← add this<br>}, 350);</code><br><br>
+Shall I apply this fix?`
+  }
+];
+
+let aiResponseIdx = 0;
+function respondToAI(userMsg) {
+  const r = AI_RESPONSES[aiResponseIdx % AI_RESPONSES.length];
+  aiResponseIdx++;
+  const msgs = document.getElementById('aiMsgs');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai';
+  div.style.animation = 'msgSlide .25s cubic-bezier(.34,1.2,.64,1)';
+  const avatar = '<div class="ai-avatar av-ai">✦</div>';
+  div.innerHTML = `${avatar}<div>${r.build()}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTo({ top: msgs.scrollHeight, behavior: 'smooth' });
+}
+
+function acceptDiff(btn) {
+  btn.closest('.ai-diff').style.opacity = '.5';
+  btn.textContent = '✓ Applied';
+  btn.style.background = 'var(--green-dim)';
+  toast('Diff Applied', 'Changes written to App.tsx');
+}
+function rejectDiff(btn) {
+  btn.closest('.ai-diff').style.opacity = '.4';
+  btn.textContent = '✕ Rejected';
+}
+function applyCode(btn) {
+  btn.textContent = '✓ Applied';
+  toast('Code Applied', 'App.test.tsx created in apps/web');
+}
+function copyAICode(btn) {
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+
+/* resize AI panel */
+(function setupAIResize() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const handle = document.getElementById('aiResizeHandle');
+    const panel = document.getElementById('aiPanel');
+    if (!handle || !panel) return;
+    let dragging = false, startX, startW;
+    handle.addEventListener('mousedown', e => {
+      dragging = true; startX = e.clientX; startW = panel.offsetWidth;
+      document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const delta = startX - e.clientX;
+      const newW = Math.max(260, Math.min(560, startW + delta));
+      panel.style.width = newW + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = '';
+    });
+  });
+})();
+
+/* ════════════════════════════════
+   TERMINAL
+════════════════════════════════ */
+const TERM_INITIAL = [
+  { type:'prompt', path:'~/apps/web', cmd:'npm run dev' },
+  { type:'out', cls:'info', msg:'  ▲ Next.js 14.2.0' },
+  { type:'out', cls:'info', msg:'  - Local:   http://localhost:3000' },
+  { type:'out', cls:'info', msg:'  - Network: http://192.168.1.10:3000' },
+  { type:'out', cls:'ok',   msg:'  ✓ Ready in 842ms' },
+  { type:'prompt', path:'~/apps/web', cmd:'git status' },
+  { type:'out', cls:'', msg:'On branch main' },
+  { type:'out', cls:'ok', msg:'Changes not staged for commit:' },
+  { type:'out', cls:'warn', msg:'  modified: src/App.tsx' },
+  { type:'out', cls:'warn', msg:'  modified: src/Pipeline.tsx' },
+];
+
+const termHistory = [];
+let termHistIdx = -1;
+let termMaximized = false;
+
+function buildTerminal() {
+  const body = document.getElementById('termBody');
+  body.innerHTML = TERM_INITIAL.map(l => {
+    if (l.type === 'prompt') {
+      return `<div class="term-line"><span class="term-prompt">➜</span><span class="term-path">${l.path}</span><span class="term-cmd"> ${l.cmd}</span></div>`;
+    }
+    return `<div class="term-line"><span class="term-out ${l.cls}">${l.msg}</span></div>`;
+  }).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+function handleTermInput(e) {
+  const inp = document.getElementById('termInput');
+  if (e.key === 'Enter') {
+    const cmd = inp.value.trim();
+    if (!cmd) return;
+    termHistory.unshift(cmd);
+    termHistIdx = -1;
+    inp.value = '';
+    execTermCmd(cmd);
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (termHistIdx < termHistory.length - 1) {
+      termHistIdx++;
+      inp.value = termHistory[termHistIdx];
+    }
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (termHistIdx > 0) { termHistIdx--; inp.value = termHistory[termHistIdx]; }
+    else { termHistIdx = -1; inp.value = ''; }
+  }
+}
+
+function execTermCmd(cmd) {
+  const body = document.getElementById('termBody');
+  const addLine = (cls, msg) => {
+    body.innerHTML += `<div class="term-line"><span class="term-out ${cls}">${msg}</span></div>`;
+  };
+  // echo the command
+  body.innerHTML += `<div class="term-line"><span class="term-prompt">➜</span><span class="term-path">~/apps/web</span><span class="term-cmd"> ${escHtml(cmd)}</span></div>`;
+
+  const responses = {
+    'git status': [
+      ['', 'On branch main'],
+      ['ok','Changes not staged for commit:'],
+      ['warn','  modified: src/App.tsx'],
+    ],
+    'git log --oneline -5': [
+      ['info','a4f8e2c feat: AI panel + terminal on editor page'],
+      ['info','3c2d1b0 fix: 4-finger swipe gesture accumulation'],
+      ['info','9f8e7d6 feat: GitX Pipeline Jenkins-grade CI/CD'],
+      ['info','2a1b0c9 feat: three-page swipe navigation'],
+      ['info','5e4d3c2 init: project scaffold'],
+    ],
+    'npm run build': [
+      ['info', '> gitx@2.0.0 build'],
+      ['info', '> tsc && vite build'],
+      ['', ''],
+      ['ok',  '✓ 847 modules transformed'],
+      ['ok',  '✓ built in 3.41s'],
+      ['info','  dist/index.html     2.1 kB'],
+      ['info','  dist/assets/app.js  384.2 kB'],
+    ],
+    'npm test': [
+      ['info','PASS src/App.test.tsx'],
+      ['ok', '  ✓ renders all three pages (12ms)'],
+      ['ok', '  ✓ navigates on swipe left (8ms)'],
+      ['ok', '  ✓ clamps page to 0–2 range (3ms)'],
+      ['info',''],
+      ['ok', 'Tests: 12 passed, 12 total'],
+      ['info','Coverage: 87.3%'],
+    ],
+    'docker build .': [
+      ['info','[+] Building 12 layers'],
+      ['info','[1/6] FROM node:20-alpine'],
+      ['info','[4/6] COPY . .'],
+      ['info','[5/6] RUN npm ci'],
+      ['ok', '[6/6] RUN npm run build'],
+      ['ok', ' ✓ Built creator/gitx:latest · 142MB'],
+    ],
+    'ls': [
+      ['', 'apps/  packages/  k8s/  helm/  docs/  Dockerfile  Jenkinsfile  package.json  README.md'],
+    ],
+    'pwd': [['', '/home/creator/gitx/apps/web']],
+    'node -v': [['info','v20.11.0']],
+    'help': [
+      ['info','Available: git, npm, docker, ls, pwd, node, kubectl, gitx'],
+    ],
+    'gitx': [
+      ['info','GitX CLI v2.0.0'],
+      ['ok', 'Commands: gitx push · gitx pipeline run · gitx deploy · gitx logs'],
+    ],
+    'gitx pipeline run': [
+      ['info','⚡ Triggering pipeline: gitx-main-deploy'],
+      ['ok', '✔ Run #49 queued on main'],
+    ],
+    'kubectl get pods': [
+      ['info','NAME                     READY  STATUS    RESTARTS  AGE'],
+      ['ok', 'gitx-web-7d8f9c-xk2mp   1/1    Running   0         2d'],
+      ['ok', 'gitx-api-6c7d8e-lp3nq   1/1    Running   0         2d'],
+      ['warn','gitx-worker-5b6c7d-mn4  0/1    Pending   2         1h'],
+    ],
+  };
+
+  const cmdLower = cmd.toLowerCase().trim();
+  const resp = responses[cmdLower] || [['warn', `Command not found: ${cmd}. Type 'help' for commands.`]];
+  resp.forEach(([cls, msg]) => addLine(cls, msg));
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearTerminal() {
+  document.getElementById('termBody').innerHTML = '';
+}
+function addTerminalTab() {
+  toast('New Terminal', 'bash session 2 started');
+}
+function toggleTermSize() {
+  const panel = document.getElementById('termPanel');
+  termMaximized = !termMaximized;
+  panel.style.height = termMaximized ? '60%' : '180px';
+  document.getElementById('termMaxBtn').textContent = termMaximized ? '⤡' : '⤢';
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// boot terminal on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => { buildTerminal(); });
+</script>
+</body>
+</html>

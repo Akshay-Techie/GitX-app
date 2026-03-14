@@ -1,0 +1,67 @@
+# ════════════════════════════════════════════════
+# GitX — Kubernetes Deployment
+# Deploys GitX app from AWS ECR
+# Author: Akshay-Techie
+# ════════════════════════════════════════════════
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of the deployment
+  name: gitx-app
+  # Namespace to deploy in
+  namespace: default
+  labels:
+    app: gitx-app
+spec:
+  # Number of pod replicas to run
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gitx-app
+  template:
+    metadata:
+      labels:
+        app: gitx-app
+    spec:
+    # Use ECR secret to pull image
+      imagePullSecrets:
+        - name: ecr-secret
+        
+      containers:
+        - name: gitx-app
+          # Image from AWS ECR
+          # Update this with your ECR URL
+          image: 793433927733.dkr.ecr.ap-south-1.amazonaws.com/gitx-app:build-latest
+          
+          # Always pull latest image
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          # Resource limits — prevents pod using too much RAM/CPU
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          # Health check — Kubernetes restarts pod if unhealthy
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          # Environment variables
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
